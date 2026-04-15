@@ -1,0 +1,10 @@
+.DS_Store
+.DS_Store?
+._*
+__MACOSX/
+
+# 子目录有各自的 git repo，不在此追踪
+Tunee Skill库/
+视频skill/
+视频测试/
+剧本大纲节点/
