@@ -10,23 +10,49 @@ Take the provided payload, generate one MV creative guide, and return exactly on
 
 ## 1. Timeline Normalization
 
+**When to execute**: Timeline normalization runs after all Section 5 (Vision Architecture) planning is complete — including Section 5.6 row budget anchoring. Do not write any `md_stages` row before this pass completes.
+
 **CRITICAL:** `lyrics_timeline` entry boundaries are NOT `md_stages` row boundaries. Timestamps are used only to extract lyric text and section labels.
 
 **Hard constraints (every row must satisfy all):**
 - `startTime` and `endTime` are integer seconds (round to nearest; clamp to `[0, audio_duration]`)
-- `4s ≤ duration ≤ 15s` for every non-locked row
-- No row may span more than one music structure section; section boundaries are always hard row boundaries
+- `4s ≤ duration ≤ 15s` for every row; duration is the first priority and must not be sacrificed to preserve music structure
+- Music structure boundaries are preferred cut points, but they may be crossed when needed to keep every row within 4–15s
 - Rows ordered by `startTime`, non-overlapping, full continuous coverage from `0` to `audio_duration`
 
-**Locked rows:** entries whose `text` is `[Instrumental]`, `[Inst: ...]`, or similar — keep timestamps as-is; exclude from merge/split; lyric cell empty. If all entries are locked, divide `[0, audio_duration]` into even 4–15s segments with empty lyric cells, respecting section boundaries.
+**Locked rows:** entries whose `text` is `[Instrumental]`, `[Inst: ...]`, or similar — keep timestamps as-is only if they already satisfy 4–15s; otherwise repair them like any other row. Lyric cell remains empty.
 
-**Row boundary rules (apply in order, iterate until all rows satisfy hard constraints):**
-- **Gaps** 1–3s: absorb into adjacent row within the same section (prefer preceding; result must stay ≤ 15s). Gaps ≥ 4s: create new empty-lyric row.
-- **Short rows** (< 4s, skip locked): merge with same-section neighbor only; target merged duration closest to 8–12s; join lyric texts in time order; merged duration ≤ 15s. **Deadlock escape:** if neither same-section neighbor merge stays ≤ 15s — split the preferred target at a natural phrase/beat boundary into two pieces (each ≥ 4s); merge the short row with whichever piece is closer in time; if the result still violates constraints, apply the Long-row split rule to the merged segment. Stop after one deadlock escape per row; flag any remaining violation in the verify pass.
-- **Emotion-driven merging** (skip locked): merge adjacent same-section rows when emotional direction is continuous; cut at turning points; result must be 4–15s
-- **Long rows** (> 15s, skip locked): split at phrase/beat/emotion boundaries within the same section; each piece 4–15s, targeting 8–12s; remainder < 4s merges into an adjacent same-section piece; each sub-row has a fully independent visual description
+**Row boundary rules — execute in order, iterate until stable (max 3 passes):**
 
-Verify all rows before output. If any violation remains, re-apply rules and re-verify.
+**Step 0 — Section boundary pre-cut (mandatory first step)**
+Before applying any gap/merge/split rule: scan `lyrics_timeline` for every section-label change and mark each transition as a preferred boundary. Only keep the boundary if both sides can still satisfy 4–15s; otherwise let duration repair override it. This step runs once; all following steps operate with duration legality as the higher-priority constraint.
+
+**Step 1 — Gap absorption**
+After section pre-cut, for gaps between adjacent rows within the same section:
+- Gap 1–3s: absorb into the preceding row (if result ≤ 15s); otherwise absorb into the following row (if result ≤ 15s)
+- Gap ≥ 4s: create a new empty-lyric row for that gap
+
+**Step 2 — Short row merge (< 4s, skip locked)**
+Merge with same-section neighbor first; target merged duration closest to 8–12s; join lyric texts in time order; merged duration ≤ 15s.
+If no same-section neighbor merge can reach 4–15s, merge across the nearest section boundary instead and carry all covered section labels into `Music Structure`.
+**Deadlock escape:** if no neighbor merge stays within 4–15s — split the preferred target at a natural phrase/beat boundary into two pieces (each ≥ 4s) and retry, even if the split crosses a section boundary. Stop after one deadlock escape per row; flag any remaining violation in the verify pass.
+
+**Step 3 — Emotion-driven merging (skip locked)**
+Merge adjacent rows only when emotional direction is continuous and the result stays within 4–15s. Prefer same-section merges first; cross-section merging is allowed when it is the only way to keep the row legal.
+
+**Step 4 — Long row split (> 15s, skip locked)**
+Split at phrase/beat/emotion boundaries; each piece must end up 4–15s, targeting 8–12s. If a split would leave a sub-4s remainder inside the same section, let the split cross the nearest section boundary or adjust the cut point so the final pieces still satisfy duration. Each sub-row has a fully independent visual description.
+
+**Verify pass (run after each iteration, before output)**
+Check every row:
+- [ ] `startTime` and `endTime` are integer seconds
+- [ ] `row[0].startTime == 0`
+- [ ] `row[last].endTime == audio_duration`
+- [ ] `row[i].endTime == row[i+1].startTime` for every adjacent pair
+- [ ] `4s ≤ duration ≤ 15s` for every row
+- [ ] If a row spans multiple sections, `Music Structure` lists all covered sections in time order
+
+If all checks pass: proceed to output. If any check fails: re-apply Steps 1–4 (max 3 total iterations). After 3 iterations with remaining violations: record each unresolvable violation in `_violations` and proceed to output.
 
 ---
 
@@ -66,7 +92,7 @@ Raw JSON only — opening `{` to closing `}`, nothing else.
 ```
 
 **Hard constraints:**
-- Top-level key: `mv_guide` only; no extra fields
+- Top-level key: `mv_guide` only; no extra fields — **exception**: if timeline violations remain after 3 normalization passes, include a conditional top-level key `_violations` (array of strings, each describing one unresolved violation); omit entirely when no violations exist
 - `style_guide`: 2–4 sentences; art style and rendered visual presence only — no clothing or accessories; from `visual_style` only; omit if empty
 - `md_stages`: one complete Markdown table string; `\n` for line breaks; headers translated into the output language per Language Normalization
 - `characters` / `scenes`: `index` starts from 1
@@ -213,9 +239,21 @@ Before writing any row: **does this MV contain one image so extreme and precise 
 
 **Readability test**: after writing the Wow Factor row, verify character's action and facial signal are both readable within 2 seconds.
 
+### 5.6 Timeline Anchoring (run after 5.1–5.5 are complete)
+
+Before writing any row, anchor the timeline mathematically:
+
+1. **Enumerate sections**: list every distinct section label from `lyrics_timeline` with its time span: `[label, startTime, endTime, duration]`
+2. **Compute row budget per section**: for each section, valid row count range = `⌈section_duration / 15⌉ ≤ rows ≤ ⌊section_duration / 4⌋`. Lock a target row count for each section consistent with the scene and energy arc plan.
+3. **Run timeline normalization (Section 1)**: execute Step 0 (section pre-cut) → Steps 1–4 (gap/merge/split) → Verify pass. Only after the Verify pass succeeds (or violations are recorded in `_violations`) may any row be written to `md_stages`.
+
+Do not begin Section 6 until this step is complete.
+
 ---
 
 ## 6. md_stages Generation
+
+**Pre-writing requirement**: Section 5.6 Timeline Anchoring must be complete before writing any row. Use the locked row time boundaries from Section 5.6 as the definitive intervals for all rows; do not re-derive them from raw `lyrics_timeline` timestamps.
 
 `md_stages` is one Markdown table string. Headers are translated into the output language per Language Normalization.
 
@@ -299,7 +337,12 @@ At least 1 scene must be `realistic-anchor` (unless Section 5.3 user override ap
 Verify all items; repair and re-verify any that fail.
 
 1. **Structure**: character/scene names in `md_stages` identical to `mv_elements`; `style_guide` present iff `visual_style` non-empty
-2. **Timeline**: integer seconds; 4–15s per non-locked row; no row spans more than one section; ordered, non-overlapping, full coverage 0→`audio_duration`
+2. **Timeline** — verify each item:
+   - [ ] All `startTime` / `endTime` are integer seconds
+   - [ ] `row[0].startTime == 0` and `row[last].endTime == audio_duration`
+   - [ ] `row[i].endTime == row[i+1].startTime` for every adjacent pair (no gaps, no overlaps)
+   - [ ] `4s ≤ duration ≤ 15s` for every non-locked row
+   - [ ] No row spans more than one music structure section
 3. **Character anchors**: every row with a named character includes ongoing body action + readable facial signal + world-interaction anchor; no forbidden static words; no trait traces back to `character_intro`
 4. **Visual quality**: every row visually extraordinary; same-section rows visually distinct; no camera/editing terms; BPM × mood strategy applied; Energy Arc section functions respected; Chorus escalation followed; scale strategy maintained
 5. **Leitmotif + bookend**: ≥ 3 appearances with state change; first/last rows form bookend dialogue

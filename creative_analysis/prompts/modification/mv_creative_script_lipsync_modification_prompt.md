@@ -229,7 +229,7 @@ Before returning, verify every item. If any fails, repair and re-verify. Return 
 **Timeline validity:**
 
 1. All rows sorted by `startTime` ascending, non-overlapping, no gaps
-2. All timestamps are integer seconds; all durations satisfy the model's rule: `infinite-talk` / `kling_avatar_2.0`: 5-300s; `wan_video_2_6`: 5/10/15s (last row 10/15s)
+2. All timestamps are integer seconds; all durations satisfy the model's rule: `infinite-talk` / `kling_avatar_2.0`: 5-300s; `wan_video_2_6`: 5/10/15s (last row 10/15s); `wan_video_2_7`: 2-15s
 3. Last row's `endTime` equals `audio_duration`
 
 **Consistency:**

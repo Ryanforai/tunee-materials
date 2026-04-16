@@ -96,7 +96,7 @@ If `mv_outline` arrives as an object, summarize it internally from its `characte
 
 ## 3. Segmentation Rules by video_model
 
-Segment `lyrics_timeline` into rows based on `video_model`. All timestamps must be integer seconds — round any decimal timestamps to nearest integer before segmentation.
+Segment `lyrics_timeline` into rows based on `video_model`. All timestamps must be integer seconds — round any decimal timestamps to nearest integer and clamp to `[0, audio_duration]` before segmentation.
 
 **[CRITICAL] scene_mode = one_take**: output exactly **one row** covering the full duration `0s-{audio_duration}s`. Join all lyric lines from `lyrics_timeline` into a single space-separated string. Generate one Visual Description covering the full performance arc. Use a single concise scene name. Skip all segmentation rules below.
 
@@ -119,7 +119,7 @@ Segment `lyrics_timeline` into rows based on `video_model`. All timestamps must 
 3. Validate each segment's duration:
    - < 5s: absorb next line(s) until duration ≥ 5s
    - > 300s: split at a natural phrase boundary; each piece must be ≤ 300s
-4. Last segment's `endTime` must equal `audio_duration`; if the last lyric line's `endTime` ≠ `audio_duration`, force the last segment's `endTime` to `audio_duration`
+4. Last segment's `endTime` must equal `audio_duration`; if the last lyric line's `endTime` ≠ `audio_duration`, force the last segment's `endTime` to `audio_duration`. **Arithmetic check**: after forcing, re-verify last segment duration ≥ 5s. If forcing makes the last segment duration < 5s, absorb it into the preceding segment (the combined segment may exceed 300s only if no other split point exists — flag in `_violations` if result > 300s).
 5. Music Structure cell: list all `section` values within the segment; if multiple distinct values, join with ` / `
 
 **scene_mode**: `multiple_scenes` only (one_take outputs a single row — see Section 3 opening rule).
@@ -130,18 +130,41 @@ Segment `lyrics_timeline` into rows based on `video_model`. All timestamps must 
 
 **Allowed durations per row**: 5s, 10s, or 15s only. Last row: 10s or 15s only.
 
-**Segmentation procedure**:
+**Segmentation algorithm**:
 
-1. Ignore original `lyrics_timeline` timestamps entirely; redivide `audio_duration` from scratch:
-   - Each segment duration chosen from `{5, 10, 15}`; last segment from `{10, 15}`
-   - All segment durations must sum exactly to `audio_duration`
-   - Distribute as evenly as possible; avoid large variance between segments
-2. Assign lyric lines to segments by `startTime` fall point; join assigned lines with a single space
-3. Segments with no lyric lines: leave lyric cell empty
-4. Music Structure cell: list all `section` values whose time range overlaps the segment; if multiple, join with ` / `
-5. Last segment's `endTime` must equal `audio_duration`
+1. Ignore original `lyrics_timeline` timestamps entirely; redivide `audio_duration` from scratch using the exact procedure below.
+2. Compute initial segment count: `n = max(2, round(audio_duration / 10))`
+3. Assign first `n−1` segments 10s each. Compute: `last = audio_duration − (n−1) × 10`
+4. Adjust until `last ∈ {10, 15}`:
+   - If `last > 15`: set `n ← n + 1` and go to step 3
+   - If `last < 10` and there is at least one 10s segment among the first `n−1`: replace that segment with 5s; `last ← last + 5`; repeat check
+   - If `last < 10` and no 10s segments remain to reduce: set `n ← n + 1` and go to step 3
+5. **Arithmetic check**: assert sum of all segment durations = `audio_duration`. If `audio_duration` is not divisible by 5, round `audio_duration` to the nearest multiple of 5, note the approximation, and retry from step 2.
+6. Assign lyric lines to segments by original `startTime` fall point; join assigned lines with a single space
+7. Segments with no lyric lines: leave lyric cell empty
+8. Music Structure cell: list all `section` values whose time range overlaps the segment; if multiple, join with ` / `
+9. Verify: last segment's `endTime` = `audio_duration`; all durations ∈ {5, 10, 15}; last ∈ {10, 15}; sum = `audio_duration`
 
 **scene_mode**: `wan_video_2_6` always uses `multiple_scenes`; if `one_take` is passed, apply the single-row rule in Section 3 opening instead.
+
+---
+
+### 3.3 video_model = `wan_video_2_7`
+
+**Duration range per row**: 2s–15s (any integer duration within this range)
+
+**Segmentation procedure**:
+
+1. Follow `lyrics_timeline` timestamps directly; round all timestamps to integer seconds
+2. Group lyric lines into segments of **1–2 lyric lines** per segment
+3. Each segment's time span = first line's `startTime` → last line's `endTime`
+4. Validate each segment's duration:
+   - < 2s: absorb the next lyric line(s) until duration ≥ 2s
+   - > 15s: split at a natural phrase boundary; each piece must be within 2–15s; if a remainder after splitting would be < 2s, merge it back into the adjacent piece instead
+5. Last segment's `endTime` must equal `audio_duration`; if the last lyric line's `endTime` ≠ `audio_duration`, force the last segment's `endTime` to `audio_duration`. If this causes the last segment's duration to exceed 15s, split it; if it drops below 2s, merge it into the preceding segment
+6. Music Structure cell: list all `section` values within the segment; if multiple distinct values, join with ` / `
+
+**scene_mode**: `wan_video_2_7` always uses `multiple_scenes`; `one_take` input → apply the single-row rule in Section 3 opening.
 
 ---
 
@@ -206,13 +229,19 @@ Describe the character's art style in flowing prose: identify the rendering styl
 
 Before returning, verify every item. If any fails, repair and re-verify. Return only the repaired final JSON.
 
-**Timeline checks**:
+**Timeline checks** (`multiple_scenes`):
 
-1. All timestamps are integer seconds
-2. All row durations satisfy the model's rule: `infinite-talk` / `kling_avatar_2.0`: 5-300s; `wan_video_2_6`: 5/10/15s (last row 10/15s)
-3. Rows are ordered by `startTime`, non-overlapping, fully covering `0` to `audio_duration` with no gap
-4. Last row's `endTime` equals `audio_duration`
-5. `wan_video_2_6`: all durations sum to `audio_duration`
+1. All timestamps are integer seconds; all clamped to `[0, audio_duration]`
+2. `row[0].startTime == 0` and `row[last].endTime == audio_duration`
+3. `row[i].endTime == row[i+1].startTime` for every adjacent pair — no gaps, no overlaps
+4. Model duration rules:
+   - `infinite-talk` / `kling_avatar_2.0`: `5s ≤ duration ≤ 300s` per row
+   - `wan_video_2_6`: each row duration ∈ {5, 10, 15}; last row ∈ {10, 15}; sum of all durations = `audio_duration`
+   - `wan_video_2_7`: each row duration ∈ {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; sum of all durations = `audio_duration`
+
+**Timeline checks** (`one_take`):
+
+5. Exactly one row spanning `0s–audio_duration`; items 1–2 satisfied trivially
 
 **Consistency checks**:
 
@@ -236,7 +265,7 @@ Before returning, verify every item. If any fails, repair and re-verify. Return 
 ## Execution Order
 
 1. Extract and normalize payload
-2. Round all timestamps to integer seconds
+2. Round all timestamps to integer seconds; clamp to `[0, audio_duration]`
 3. Segment by `video_model` rules
 4. Generate `md_stages` (apply Visual Description writing rules in Section 4.1)
 5. Generate `mv_elements` (characters → scenes)
@@ -317,12 +346,12 @@ Before returning, verify every item. If any fails, repair and re-verify. Return 
 
 **Input**:
 ```json
-{"mv_outline":"The singer is a young woman in ancient Chinese style, emotions delicate and lyrical.","video_model":"wan_video_2_6","user_prompt":"Lip-sync MV, classical scene","lyrics_timeline":[{"text":"Beacon fires light up the capital","startTime":0,"endTime":5,"section":"Verse 1"},{"text":"Jade pendant rests in my hand","startTime":5,"endTime":10,"section":"Verse 1"},{"text":"Alone I lean against the balcony","startTime":10,"endTime":15,"section":"Verse 1"},{"text":"The carrier dove returns too late","startTime":15,"endTime":20,"section":"Verse 1"},{"text":"We gaze at the same moon","startTime":20,"endTime":26,"section":"Chorus"},{"text":"Each from a distant shore","startTime":26,"endTime":32,"section":"Chorus"},{"text":"Longing rises like smoke","startTime":32,"endTime":38,"section":"Chorus"},{"text":"Scattering then swelling again","startTime":38,"endTime":44,"section":"Chorus"}],"language_code":"en","scene_mode":"multiple_scenes","audio_duration":44,"visual_style":"Ink Wash"}
+{"mv_outline":"The singer is a young woman in ancient Chinese style, emotions delicate and lyrical.","video_model":"wan_video_2_6","user_prompt":"Lip-sync MV, classical scene","lyrics_timeline":[{"text":"Beacon fires light up the capital","startTime":0,"endTime":5,"section":"Verse 1"},{"text":"Jade pendant rests in my hand","startTime":5,"endTime":10,"section":"Verse 1"},{"text":"Alone I lean against the balcony","startTime":10,"endTime":15,"section":"Verse 1"},{"text":"The carrier dove returns too late","startTime":15,"endTime":20,"section":"Verse 1"},{"text":"We gaze at the same moon","startTime":20,"endTime":26,"section":"Chorus"},{"text":"Each from a distant shore","startTime":26,"endTime":32,"section":"Chorus"},{"text":"Longing rises like smoke","startTime":32,"endTime":38,"section":"Chorus"},{"text":"Scattering then swelling again","startTime":38,"endTime":45,"section":"Chorus"}],"language_code":"en","scene_mode":"multiple_scenes","audio_duration":45,"visual_style":"Ink Wash"}
 ```
 
 > **Segmentation notes**:
-> - audio_duration = 44s; even split: 10s + 10s + 10s + 14s, last segment endTime forced to 44s ✓
-> - Lyric assignment by startTime: 0s-10s: lines 1-2 / 10s-20s: lines 3-4 / 20s-30s: lines 5-6 / 30s-44s: lines 7-8
+> - audio_duration = 45s; algorithm: n = round(45/10) = 5; first 4 segments = 10s each; last = 45−40 = 5s. But last must ∈ {10,15} — adjust: replace one 10s with 5s → first 3×10s + 1×5s + last; last = 45−35 = 10s ✓. Final plan: 10s + 10s + 10s + 5s + 10s. Alternatively, simpler valid plan: n=3; 3 segments: last = 45−20=25>15 → n=4; last=45−30=15 ✓. Use 10s+10s+10s+15s (n=4).
+> - Lyric assignment by startTime: 0s-10s: lines 1-2 / 10s-20s: lines 3-4 / 20s-30s: lines 5-6 / 30s-45s: lines 7-8
 > - Scene "Moon Chamber" ×4 → standard rule applies; output 1 scene
 
 **Output**:
@@ -330,7 +359,7 @@ Before returning, verify every item. If any fails, repair and re-verify. Return 
 {
   "mv_guide": {
     "style_guide": "This MV is rendered in an ink-wash animation style, with layered ink gradients as the primary visual texture, soft flowing linework, and a palette of quiet, elegant tones that evoke the aesthetic spirit of classical East Asian art. Sijun is rendered in impressionistic brushwork, her silhouette soft and luminous against the ink-washed backgrounds, carrying the refined restraint of classical portrait painting.",
-    "md_stages": "| Time | Music Structure | Lyrics | Visual Description | Scene | Characters |\n|---|---|---|---|---|---|\n| 0s-10s | Verse 1 | Beacon fires light up the capital Jade pendant rests in my hand | Sijun faces the lens, fingers gently tracing the jade pendant in her palm, lips parting softly with the melody, gaze warm and distant. | Moon Chamber | Sijun |\n| 10s-20s | Verse 1 | Alone I lean against the balcony The carrier dove returns too late | Sijun turns to lean against the railing, eyes drifting toward the window, a barely perceptible waiting written across her brow as she sings. | Moon Chamber | Sijun |\n| 20s-30s | Chorus | We gaze at the same moon Each from a distant shore | Sijun tilts her head upward toward the distance, emotion deepening, lips moving with fuller clarity, the corners of her eyes catching the faintest shimmer. | Moon Chamber | Sijun |\n| 30s-44s | Chorus | Longing rises like smoke Scattering then swelling again | Sijun turns to face the lens directly, delivering the final phrases with full emotional weight, then gently closes her eyes as her lips come to rest. | Moon Chamber | Sijun |",
+    "md_stages": "| Time | Music Structure | Lyrics | Visual Description | Scene | Characters |\n|---|---|---|---|---|---|\n| 0s-10s | Verse 1 | Beacon fires light up the capital Jade pendant rests in my hand | Sijun faces the lens, fingers gently tracing the jade pendant in her palm, lips parting softly with the melody, gaze warm and distant. | Moon Chamber | Sijun |\n| 10s-20s | Verse 1 | Alone I lean against the balcony The carrier dove returns too late | Sijun turns to lean against the railing, eyes drifting toward the window, a barely perceptible waiting written across her brow as she sings. | Moon Chamber | Sijun |\n| 20s-30s | Chorus | We gaze at the same moon Each from a distant shore | Sijun tilts her head upward toward the distance, emotion deepening, lips moving with fuller clarity, the corners of her eyes catching the faintest shimmer. | Moon Chamber | Sijun |\n| 30s-45s | Chorus | Longing rises like smoke Scattering then swelling again | Sijun turns to face the lens directly, delivering the final phrases with full emotional weight, then gently closes her eyes as her lips come to rest. | Moon Chamber | Sijun |",
     "mv_elements": {
       "characters": [
         {
