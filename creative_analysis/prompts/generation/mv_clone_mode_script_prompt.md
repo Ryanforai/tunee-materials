@@ -277,10 +277,10 @@ Each item: `index` (int from 1), `name` (short atmospheric label matching or clo
 ### Style Guide
 2–4 sentences. Rendering style and character visual presence — line quality, color treatment, aesthetic impression. No clothing or accessories. Multiple characters: describe each by name.
 
-Source priority:
-- `visual_style` non-empty: use `visual_style` as primary; reference Visual Style Summary from `video_analysis_results` as supplementary texture
-- `visual_style` empty + Visual Style Summary present: generate `style_guide` from the Visual Style Summary alone
-- `visual_style` empty + no Visual Style Summary: omit `style_guide` entirely
+Source priority (execute top to bottom, first match wins):
+- Visual Style Summary present in `video_analysis_results`: expand it into 2–4 sentences for `style_guide`. **Ignore `visual_style` entirely** — it was generated without access to the reference video and would introduce conflicting style signals.
+- No Visual Style Summary + `visual_style` non-empty: fall back to `visual_style`
+- Both absent: omit `style_guide` entirely
 </mv_elements_generation>
 
 ---
@@ -288,7 +288,7 @@ Source priority:
 <output_gate>
 Verify all items; repair and re-verify any that fail.
 
-1. **Structure**: character/scene names in `md_stages` identical to `mv_elements`; `style_guide` present when `visual_style` is non-empty OR when `visual_style` is empty but Visual Style Summary exists in `video_analysis_results`; omitted only when both are absent
+1. **Structure**: character/scene names in `md_stages` identical to `mv_elements`; `style_guide` present when Visual Style Summary exists in `video_analysis_results` OR when absent but `visual_style` is non-empty; omitted only when both are absent
 2. **Timeline** — verify each item:
    - [ ] All `startTime` / `endTime` are integer seconds
    - [ ] `row[0].startTime == 0` and `row[last].endTime == audio_duration`

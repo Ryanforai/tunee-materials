@@ -194,7 +194,7 @@ Count exact name matches in the final 场景 column.
 ### Style Guide
 
 - Copy verbatim from `ori_mv_guide.style_guide` if present — never modify
-- If absent and Visual Style Summary exists in `video_analysis_results`: generate 2–4 sentences covering rendering style and character visual presence (line quality, color treatment, aesthetic impression); no clothing or accessories; multiple characters described by name; source: Visual Style Summary + `visual_style` if non-empty
+- If absent and Visual Style Summary exists in `video_analysis_results`: generate 2–4 sentences covering rendering style and character visual presence (line quality, color treatment, aesthetic impression); no clothing or accessories; multiple characters described by name; source exclusively from Visual Style Summary — **ignore `visual_style`** to avoid injecting style signals not derived from the reference video
 - If absent and no Visual Style Summary: omit entirely
 
 ---
