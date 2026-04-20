@@ -38,11 +38,16 @@
   - `create_id`, `create_title`: Creation identification
   - `user_instruction`: Task description in natural language (most important for understanding intent)
   - `user_requirement`: User-provided materials
-    * `audio_type`: "song" or "instrumental" (required)
+    * `audio_type`: "song" or "instrumental" or "not_required" (required)
     * `prompt`: Music prompt (optional)
     * `negative_prompt`: Music negative_prompt (optional)
     * `lyric`: Lyrics content (optional)
     * `reference_audio`: Audio file or name for reference (optional)
+      - Cover: Canvas/uploaded track as melody source
+      - Voice Extraction: Uploaded vocal as timbre sample
+      - Hum to Song: Uploaded humming/vocal demo as melody to expand
+      - Imitation: Uploaded or Canvas audio as style/melody reference
+      - Extension: Canvas track to continue from
   - `content`: Content generation info
     * `generate_id`: Unique identifier
     * `content_type`: "audio"
@@ -64,7 +69,7 @@
   Does relevant_content have existing audio AND user wants to modify/continue it?
   ├─ YES → Task Type: UPDATE
   │
-  └─ NO → Does user want to search for information?
+  └─ NO → Does user clearly want to search for information?
            │
            │ Analyze user_instruction semantically:
            │ - Does user ask to search/find/look up something?
@@ -77,10 +82,9 @@
            └─ NO → Task Type: CREATE
   ```
 
-  **Key Points:**
-  - UPDATE: Only when modifying/continuing existing audio in relevant_content
-  - RESEARCH_CREATE: When user clearly wants information from search
-  - CREATE: Default for most requests (uses existing knowledge, relevant_content, or user-provided materials)
+  **Note:** Cover, Voice Extraction, Hum to Song, and Imitation generate NEW audio from a reference — they are sub-types of CREATE, not UPDATE. See Critical Rules for details.
+
+  **IMPORTANT: Cover, Voice Extraction, and Hum to Song do NOT support instrumental-only audio.** If the source/reference audio has no vocals → skip and let upstream handle the decline.
 
   ---
 
@@ -101,13 +105,11 @@
   **Then, make field decisions based on your understanding:**
 
   For each field (prompt, lyric):
-  Note: negative_prompt is a simple extraction field:
-  - Copy from user_requirement if provided (no completeness check)
-  - Otherwise null
-  - Never mark TODO (system doesn't generate negative_prompt)
+  Note: negative_prompt is NOT processed here — see Step 4.
 
   Based on clarified intent:
 
+  ```
   Does user want to directly use the content they provided?
   ├─ YES → Check: Is content complete and ready to use as-is?
   │
@@ -117,7 +119,9 @@
   │         · NOT just a single line/phrase/sentence
   │
   │         For prompt - Complete means:
-  │         · Full description of music style, not just keywords
+  │         · Structured description with genre, mood, instrumentation, tempo, and production notes, OR
+  │         · User explicitly states "use this prompt / use this description" with a detailed block, OR
+  │         · A well-formed Music Prompt with 5+ elements (e.g. "Mandarin Pop, 85-90 BPM, male vocals, acoustic guitar, piano, synth pads, R&B drums")
   │
   │         ├─ YES (meets above criteria) → Copy from user_requirement
   │         └─ NO (single line, fragment, keywords) → Mark "TODO"
@@ -138,9 +142,7 @@
 
   ---
 
-  **Apply to different task types:**
-
-  #### **Apply to Different Task Types:**
+  #### Apply to different task types
 
   **UPDATE Task:**
   ```
@@ -154,7 +156,7 @@
   3. Otherwise (field not mentioned) → Copy from relevant_content (keep unchanged)
 
   negative_prompt: Copy from user_requirement if provided, otherwise copy from relevant_content (or null)
-  reference_audio: Always "TODO" (use original as reference)
+  reference_audio: Always "TODO" (use original as reference). Note: Cover is classified as CREATE (not UPDATE) — see Step 2.
   ```
 
   **RESEARCH_CREATE Task:**
@@ -181,6 +183,7 @@
   **Exceptions (set field to null):**
   - prompt = null: If user_instruction ONLY mentions lyrics/writing words (no mention of music/sound/prompt)
   - lyric = null: If audio_type = "instrumental" OR user_instruction ONLY mentions prompt/music description (no mention of lyrics/song)
+  - If audio_type = "not_required": The deliverable is text-only (lyrics, MV script, prompt writing). prompt = null, lyric = Copy or TODO per Step 3 tree.
 
   **For fields not set to null, apply intent analysis from Step 3:**
 
@@ -189,9 +192,9 @@
   - Apply intent pattern analysis
 
   **negative_prompt:**
-  - Extract-only field (no generation)
-  - Copy from user_requirement if provided, otherwise null
-  - Must be in English
+  - Extract-only field (no generation). Copy from user_requirement if provided, otherwise null. Never mark TODO.
+  - For UPDATE tasks: copy from relevant_content if user_requirement has none.
+  - Must be in English.
 
   **lyric:**
   - Apply intent pattern analysis
@@ -200,9 +203,12 @@
   **reference_audio:**
   - Optional, based on task needs
   - Mark "TODO" when:
-    * User provides audio file
-    * User wants to use audio from relevant_content
-    * UPDATE task (use original audio)
+    * Cover: keep melody, change style/voice (use Canvas or uploaded audio)
+    * Hum to Song: expand humming/vocal demo (use uploaded audio)
+    * Voice Extraction: use vocal timbre for new song (use uploaded vocal)
+    * Imitation: similar style/melody (use uploaded or Canvas audio)
+    * Extension: continue from existing audio (use Canvas audio)
+    * UPDATE task (use original audio as reference)
   - Otherwise null
 
   ---
@@ -434,26 +440,81 @@
 
   ---
 
+  ### Example 6: Cover Request
+
+  **Input:**
+  ```json
+  {
+    "user_instruction": "Cover this song with a jazz style, keep the melody",
+    "user_requirement": {
+      "audio_type": "song"
+    },
+    "relevant_content": [{
+      "prompt": "electronic, 120 BPM",
+      "lyric": "[Verse] Moonlight on the water",
+      "files": {"url": "https://ex.com/song.mp3"}
+    }]
+  }
+  ```
+
+  **Intent:** Cover existing song — keep melody, change style to jazz
+
+  **Decision:** prompt TODO (new style), lyric TODO (Cover generates new arrangement; if user says "keep lyrics" → Copy from relevant_content), reference_audio TODO (use Canvas track as melody source)
+
+  **Output:**
+  ```json
+  {
+    "information_to_collect": [],
+    "content": {
+      "prompt": "TODO",
+      "lyric": "TODO",
+      "reference_audio": "TODO",
+      "relevant_knowledge": []
+    },
+    "task_type": "create"
+  }
+  ```
+
+  ---
+
+  ### Example 7: Hum to Song Request
+
+  **Input:**
+  ```json
+  {
+    "user_instruction": "Turn my humming into a full song",
+    "user_requirement": {
+      "audio_type": "song"
+    },
+    "relevant_content": []
+  }
+  ```
+
+  **Intent:** User uploaded humming, wants it expanded into a full arranged track
+
+  **Decision:** prompt TODO (generate arrangement), lyric TODO (generate lyrics for the melody), reference_audio TODO (use humming as melody source)
+
+  **Output:**
+  ```json
+  {
+    "information_to_collect": [],
+    "content": {
+      "prompt": "TODO",
+      "lyric": "TODO",
+      "reference_audio": "TODO",
+      "relevant_knowledge": []
+    },
+    "task_type": "create"
+  }
+  ```
+
+  ---
+
   ## Critical Rules
 
-  **Intent Understanding:**
-  - Analyze user_instruction semantically to understand what user wants
-  - Don't match keywords mechanically - understand meaning
-  - Always apply Step 3 completeness check before copying any content
-
-  **Task Classification:**
-  - UPDATE: Only when relevant_content has audio AND user wants to modify/continue
-  - RESEARCH_CREATE: When user clearly wants to search or needs current information
-  - CREATE: Default for most cases
-
-  **Field Processing:**
-  - Copy when user explicitly wants to use content AND content is complete
-    * Single line/phrase ≠ complete lyrics (always TODO)
-    * Keywords only ≠ complete prompt (always TODO)
-  - TODO when content needs generation or user provides direction/fragment
+  **Task Classification:** See Step 2 decision tree and sub-type definitions.
 
   **Defaults When Uncertain:**
-  - Default to CREATE (not RESEARCH_CREATE)
   - Default to TODO (not copy)
   - Better to generate than risk using wrong interpretation
 

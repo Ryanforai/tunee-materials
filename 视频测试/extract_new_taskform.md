@@ -24,14 +24,21 @@ Apply this table in order -- stop at first match:
 
 | User request type | audio_type |
 |---|---|
-| Writing / generating lyrics or lyric text | `not_required` |
+| Request includes BOTH text (lyrics/script) AND audio generation | `song` |
+| Writing / generating lyrics or lyric text ONLY (no audio) | `not_required` |
 | MV script / storyboard / any text-only output | `not_required` |
 | Music with no vocals ("instrumental", "no vocals") | `instrumental` |
 | Adding vocals to an existing instrumental | `song` |
+| Cover (same song, different voice/style) | `song` |
+| Imitation: similar style/melody ("similar to", "模仿", not "keep melody") | `song` |
+| Voice Extraction (use timbre for new song) | `song` |
+| Hum to Song (humming/vocal demo → full song) | `song` |
 | All other music generation requests | `song` |
 
 `not_required` triggers when the primary deliverable is text -- the user does not need to explicitly reject audio.
 Out-of-scope requests (e.g. "book a concert venue") -> return `[]`. Do NOT use `not_required`.
+
+**IMPORTANT: Cover, Voice Extraction, and Hum to Song do NOT support instrumental tracks.** If the source/reference audio is instrumental-only (Canvas audio_type="instrumental" or file analysis shows no vocals) → return `[]` for that specific TaskForm. These features require vocal content to extract melody or timbre from.
 
 **Step 4 - Generate TaskForms**
 Max 3. Skip failed retries. Group related forms under the same `topic_title`.
@@ -50,6 +57,8 @@ Optional fields (`prompt`, `negative_prompt`, `lyric`, `reference_audio`) must b
   "user_instruction": "string",
   // Format: [WHICH: title + gen-id] + [WHAT: user goal] + [HOW: action detail]
   // Example: "Modify 'Moonlight' (gen-001): increase tempo, keep original melody"
+  // For single TaskForm: WHICH identifies target, WHAT is the core action, HOW adds constraint/detail.
+  // For multi-select (bot options): see Multiple TaskForms section for user_instruction format.
   "user_requirement": {
     "audio_type": "song|instrumental|not_required",
     "prompt": "string",         // Fill ONLY when user explicitly provides prompt text
@@ -89,13 +98,20 @@ Only fill when the user provides **actual text to use verbatim**. If describing 
 
 ### reference_audio
 
-Purpose: reference an existing audio file so the generation inherits similar musical characteristics (style, melody, arrangement, timbre).
+Purpose: reference an existing audio file so the generation uses it as source material. The semantic role depends on scenario: Cover=melody source (preserve melody); Voice Extraction=timbre sample (preserve voice); Hum to Song=melody to expand; Imitation=style/melody reference (melody may or may not be preserved); Extension=audio to continue from.
+
+**IMPORTANT: Instrumental block rule** — Cover, Voice Extraction, and Hum to Song require vocal content. If source audio is instrumental-only, skip that TaskForm (return `[]`). See Step 3 for full rule.
 
 | Scenario | Action |
 |---|---|
+| Cover: keep melody, change style/voice/lyrics on Canvas track or upload | Fill (Canvas audio as melody source, or uploaded track). Skip if instrumental-only. Cue: "keep melody", "翻唱". |
+| Imitation: similar style/melody without keeping melody exact | Fill (Canvas or upload as style/melody reference). Cue: "similar to", "like", "模仿". Melody will be similar but not identical. |
+| Voice Extraction: use vocal timbre from upload or Canvas track for new song | Fill (upload or Canvas audio as voice sample). Skip if source is instrumental-only. |
+| Hum to Song: expand humming/vocal demo into full track | Fill (humming as melody reference). Skip if audio is instrumental-only. |
 | Extend / continue existing audio | Fill |
 | Modify existing audio (tempo, key, arrangement) | Fill |
-| "Generate a song with similar melody/style to this" | Fill |
+| Imitation: similar style/melody without keeping melody exact | Fill (Canvas or upload as style/melody reference). Cue: "similar to", "模仿". |
+| "Generate a song with similar melody/style to this" | Same as Imitation -- see row above. |
 | Add vocals to instrumental | Fill |
 | User explicitly uploads audio as reference | Fill |
 | New creation with no reference intent | Omit |
@@ -122,11 +138,11 @@ Language rule: match dominant conversation language (bot > user). Ignore languag
 
 ## Multiple TaskForms
 
-| Trigger | Condition | create_title rule |
-|---|---|---|
-| Bot options + user selects all | Bot lists numbered options; user picks "all" or the meta-option | Must exactly match bot's option text |
-| Explore new directions | User says "explore", "new ideas", "new directions", "different approaches" | Distinct titles per TaskForm; never reuse existing Canvas creation name |
-| More of the same | User says "give me 2 more", "another one like this" | Same create_title if creative approach is identical |
+| Trigger | Condition | user_instruction rule | create_title rule |
+|---|---|---|---|
+| Bot options + user selects all | Bot lists numbered options; user picks "all" or the meta-option | **MUST inject user's original intent** from conversation — the core goal/need stated in their first message (e.g. "把上传的哼唱做成完整歌曲"). Format: "User selected all N directions. Direction X/N: [bot option text] — [original intent], [option detail]." Do NOT omit the original intent. | Must exactly match bot's option text |
+| Explore new directions | User says "explore", "new ideas", "new directions", "different approaches" | Describe new direction + reference existing creation for contrast | Distinct titles per TaskForm; never reuse existing Canvas creation name |
+| More of the same | User says "give me 2 more", "another one like this" | Same user goal, note "distinct from existing [create_title]" | Same create_title if creative approach is identical |
 
 All TaskForms in the same request share the same `topic_title`.
 The "all" meta-option does not count toward the 3 TaskForm limit.
@@ -139,10 +155,14 @@ Do NOT generate multiple TaskForms for simple retries or stepwise refinements ->
 
 1. **audio_type**: Does the value match the Step 3 decision table for this request?
 2. **Field omission**: Are `prompt`, `negative_prompt`, `lyric`, `reference_audio` fully absent (not empty strings/objects) when not applicable?
-3. **reference_audio intent**: Is the user requesting musical similarity/extension -- or just reusing text? If text only, use `relevant_content` instead.
+3. **reference_audio intent**: Is the user requesting Cover/Voice Extraction/Hum to Song/Imitation/Extension -- or just reusing text? If text only, use `relevant_content` instead.
 4. **Lyric completeness**: If lyric is filled, is the full verbatim text present independently in every TaskForm?
 5. **relevant_content**: Do all listed gen-ids exist on Canvas and relate to this specific TaskForm?
 6. **create_title accuracy**: For bot-option selections, does each title match the bot's wording exactly?
+7. **Cover/Hum to Song distinction**: For Cover, reference_audio points to Canvas/uploaded song (melody source). For Hum to Song, reference_audio is user's humming (melody to expand). Do NOT confuse these.
+8. **Cover vs Imitation**: Cover = "keep melody" explicitly stated or implied (翻唱/cover). Imitation = "similar style/feel" (模仿/类似). When user says "similar melody" without "keep melody", it's Imitation (melody will be similar but not identical).
+9. **Instrumental block**: Cover, Voice Extraction, and Hum to Song do NOT support instrumental-only audio. If source/reference audio has no vocals (Canvas audio_type="instrumental" or file analysis shows no vocals) → return `[]` for that TaskForm.
+10. **user_instruction intent (multi-select)**: When user selects bot options, does each `user_instruction` include the user's ORIGINAL goal from conversation (e.g. "把上传的哼唱做成完整歌曲"), not just the style direction text? Omitting the original intent is the #1 downstream failure mode.
 
 ---
 
@@ -203,15 +223,78 @@ Canvas: gen-001 | "Night Songs" > "Moonlight" | file-001 | https://ex.com/moon.m
 
 ---
 
-**Ex3: Same Canvas, three different intents**
+**Ex2b: Cover + implicit melody preservation**
+
+User: "Cover this with a rock style"
+Canvas: gen-001 | "Night Songs" > "Moonlight" | file-001 | https://ex.com/moon.mp3
+
+```json
+[{
+  "topic_title": "Night Songs",
+  "create_title": "Moonlight",
+  "user_instruction": "Cover 'Moonlight' (gen-001): keep melody, change style to rock",
+  "user_requirement": {
+    "audio_type": "song",
+    "reference_audio": {
+      "title": "Moonlight",
+      "file_id": "file-001",
+      "url": "https://ex.com/moon.mp3",
+      "oss_id": "",
+      "version": "",
+      "source": "from_generated"
+    }
+  },
+  "relevant_content": ["gen-001"]
+}]
+```
+
+- Cover keeps melody -> reference_audio filled with Canvas track as melody source
+- "rock style" is direction -> prompt omitted (downstream generates)
+
+---
+
+**Ex2c: Hum to Song + humming reference**
+
+User uploads humming audio (30s)
+User: "Turn this into a full song"
+
+```json
+[{
+  "topic_title": "My Melody",
+  "create_title": "Acoustic Ballad Arrangement",
+  "user_instruction": "Turn uploaded humming into a full arranged track",
+  "user_requirement": {
+    "audio_type": "song",
+    "reference_audio": {
+      "title": "User Humming",
+      "file_id": "file-hum",
+      "url": "https://ex.com/hum.mp3",
+      "oss_id": "",
+      "version": "",
+      "source": "from_user"
+    }
+  },
+  "relevant_content": []
+}]
+```
+
+- Hum to Song expands melody -> reference_audio filled with user's humming as melody source
+- New topic (no existing Canvas reference) -> topic_title derived from request theme
+- **Note**: Hum to Song requires vocal content. If uploaded audio is instrumental-only → skip (return `[]`).
+
+---
+
+**Ex3: Same Canvas, five different intents**
 
 Canvas: gen-001 | "Night Songs" > "Moonlight" | file-001 (audio + lyrics)
 
 | User Request | audio_type | reference_audio | relevant_content | Reason |
 |---|---|---|---|---|
 | "Use Moonlight's lyrics to make a jazz version" | `song` | Omit | `["gen-001"]` | Text reuse only; "jazz" is style description, not audio similarity |
-| "Make a new song with a similar melody to Moonlight" | `song` | Fill | `["gen-001"]` | "Similar melody" = audio similarity required |
+| "Make a new song with a similar melody to Moonlight" | `song` | Fill | `["gen-001"]` | "Similar melody" = audio similarity required (Imitation) |
 | "Translate Moonlight's lyrics into English" | `not_required` | Omit | `["gen-001"]` | Output is text; no audio generation |
+| "Cover Moonlight with a jazz style" | `song` | Fill | `["gen-001"]` | Cover: melody from Canvas, style changed |
+| "Use my voice to sing a love song" (with upload) | `song` | Fill | `[]` | Voice Extraction: timbre from upload, new song |
 
 ---
 
@@ -242,7 +325,7 @@ Canvas: user uploaded dry vocal | url: https://ex.com/vocal.mp3?auth_key=xxx
   {
     "topic_title": "Hero's Elegy",
     "create_title": "Hard Rock",
-    "user_instruction": "User selected all 3 directions. Direction 1/3: Hard Rock -- electric guitar and drums, full band explosion at chorus",
+    "user_instruction": "User selected all 3 directions. Direction 1/3: Hard Rock -- turn uploaded dry vocal into full song with the provided lyrics, electric guitar and drums, full band explosion at chorus",
     "user_requirement": {
       "audio_type": "song",
       "lyric": "\"Hero's Elegy\"\nVerse\nA thousand miles of yellow sand covers white bones\nThe lone city's sunset shines on a tattered flag\nChorus\nAmbitions unfulfilled before death\nForever leaving heroes with tears",
@@ -260,7 +343,7 @@ Canvas: user uploaded dry vocal | url: https://ex.com/vocal.mp3?auth_key=xxx
   {
     "topic_title": "Hero's Elegy",
     "create_title": "Epic Rap",
-    "user_instruction": "User selected all 3 directions. Direction 2/3: Epic Rap -- throat singing, fast rap sections, pipa tremolo in bridge",
+    "user_instruction": "User selected all 3 directions. Direction 2/3: Epic Rap -- turn uploaded dry vocal into full song with the provided lyrics, throat singing, fast rap sections, pipa tremolo in bridge",
     "user_requirement": {
       "audio_type": "song",
       "lyric": "\"Hero's Elegy\"\nVerse\nA thousand miles of yellow sand covers white bones\nThe lone city's sunset shines on a tattered flag\nChorus\nAmbitions unfulfilled before death\nForever leaving heroes with tears",
@@ -278,7 +361,7 @@ Canvas: user uploaded dry vocal | url: https://ex.com/vocal.mp3?auth_key=xxx
   {
     "topic_title": "Hero's Elegy",
     "create_title": "Folk Lament",
-    "user_instruction": "User selected all 3 directions. Direction 3/3: Folk Lament -- sparse acoustic arrangement, restrained vocal, sorrow builds gradually",
+    "user_instruction": "User selected all 3 directions. Direction 3/3: Folk Lament -- turn uploaded dry vocal into full song with the provided lyrics, sparse acoustic arrangement, restrained vocal, sorrow builds gradually",
     "user_requirement": {
       "audio_type": "song",
       "lyric": "\"Hero's Elegy\"\nVerse\nA thousand miles of yellow sand covers white bones\nThe lone city's sunset shines on a tattered flag\nChorus\nAmbitions unfulfilled before death\nForever leaving heroes with tears",
@@ -357,6 +440,5 @@ User: "Help me book a concert venue"
 | Long conversation | Focus since LATEST canvas log |
 | Request exceeds 3 TaskForms | Include first 3 in order |
 | Ambiguous pronoun ("it", "this") | Resolve from most recent context |
-| Stepwise refinements | ONE TaskForm with final combined requirement |
-| "More" + different styles | Treat as Explore -- distinct create_titles |
 | Out-of-scope | Return [] |
+| Cover/Voice Extraction/Hum to Song with instrumental-only source | Return []. See Step 3 instrumental block rule. |

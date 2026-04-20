@@ -324,6 +324,8 @@ Each item: `index` (int from 1), `name` (short atmospheric label, concise phrase
   - **变化方向** / **Arc**: how space evolves across the MV — write as `初始态 → 终态`
   - **现实系数** / **Reality**: `realistic-anchor` / `stylized-surreal` / `full-fantasy`
 
+**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Example: `现实系数-full-fantasy`, never `现实系数：full-fantasy`. This applies to all 6 fields in the seed.
+
 At least 1 scene must be `realistic-anchor` (unless Section 5.3 user override applies). All 6 fields required.
 
 ### 7.3 Style Guide
@@ -381,7 +383,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "白水悬境",
           "description": [
             "室内幻境 — 巨大纯白封闭空间，地面覆浅层静水；重力倒置，物体和人体朝向水面方向下坠，裙摆和头发向上飘动；四壁不可见，光源均匀无方向。",
-            "光线：均匀无方向漫射白光，5500K，低强度无阴影；色调：纯白、浅银、珠母光泽；材质：丝绸（悬浮物）、静水镜面（地面）；动态：倒置重力使纤维向上脱落飘散，水面因踩踏产生涟漪；变化方向：完整白裙悬浮（Intro）→ 墨色侵染水面、丝线残骸飘散（Outro）；现实系数：full-fantasy"
+            "光线：均匀无方向漫射白光，5500K，低强度无阴影；色调：纯白、浅银、珠母光泽；材质：丝绸（悬浮物）、静水镜面（地面）；动态：倒置重力使纤维向上脱落飘散，水面因踩踏产生涟漪；变化方向：完整白裙悬浮（Intro）→ 墨色侵染水面、丝线残骸飘散（Outro）；现实系数-full-fantasy"
           ]
         },
         {
@@ -389,7 +391,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "空巷·入夜",
           "description": [
             "中国 — 室外，中国南方老城窄巷；两侧楼墙高耸形成压迫廊道，地面潮湿；路灯从头顶单点垂落，重力正常。",
-            "光线：单点路灯顶光，2800K暖黄，中强度聚光向下；色调：深蓝黑、潮湿石灰白、路灯暖黄晕；材质：潮湿青石板路面、粉化旧墙、铁质路灯；动态：窗格灯光依次亮灭，远端雨水沿墙缓慢渗流；变化方向：路灯光晕完整（入场）→ 脚边光线收窄消失（离场）；现实系数：realistic-anchor"
+            "光线：单点路灯顶光，2800K暖黄，中强度聚光向下；色调：深蓝黑、潮湿石灰白、路灯暖黄晕；材质：潮湿青石板路面、粉化旧墙、铁质路灯；动态：窗格灯光依次亮灭，远端雨水沿墙缓慢渗流；变化方向：路灯光晕完整（入场）→ 脚边光线收窄消失（离场）；现实系数-realistic-anchor"
           ]
         },
         {
@@ -397,7 +399,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "墨水深渊",
           "description": [
             "室内幻境 — 同一纯白空间，地面水体已被墨色全面侵染；重力已恢复正常，人站在水面上不下沉；白色空间上半与黑色水面下半形成强烈水平割裂。",
-            "光线：同源漫射光被墨面大量吸收，亮度降至初始态30%；色调：消退白、深墨黑、水面残留银光；材质：墨染水面（承重不下陷）、残余丝绸骨架（空中）；动态：墨色从指尖接触点向外漫延，丝线残骸在正常重力下缓慢坠落；变化方向：墨色从边缘向中心汇聚（Outro开场）→ 最后白色倒影淹没（结尾帧）；现实系数：stylized-surreal"
+            "光线：同源漫射光被墨面大量吸收，亮度降至初始态30%；色调：消退白、深墨黑、水面残留银光；材质：墨染水面（承重不下陷）、残余丝绸骨架（空中）；动态：墨色从指尖接触点向外漫延，丝线残骸在正常重力下缓慢坠落；变化方向：墨色从边缘向中心汇聚（Outro开场）→ 最后白色倒影淹没（结尾帧）；现实系数-stylized-surreal"
           ]
         }
       ]

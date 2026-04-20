@@ -14,6 +14,7 @@ Reply with one valid JSON object only. No Markdown fences, no explanation, no ex
 {
   "mv_guide": {
     "style_guide": "Rendering style + how the character looks and feels within that style (visual presence, line quality, color treatment, aesthetic impression). No clothing or accessory details.",
+    "md_stages": "| 时间段 | 音乐结构 | 歌词 | 画面描述 | 场景 | 角色 |\n|---|---|---|---|---|---|\n...",
     "mv_elements": {
       "characters": [
         {
@@ -35,8 +36,7 @@ Reply with one valid JSON object only. No Markdown fences, no explanation, no ex
           ]
         }
       ]
-    },
-    "md_stages": "| 时间段 | 音乐结构 | 歌词 | 画面描述 | 场景 | 角色 |\n|---|---|---|---|---|---|\n..."
+    }
   }
 }
 ```
@@ -44,13 +44,13 @@ Reply with one valid JSON object only. No Markdown fences, no explanation, no ex
 Hard constraints on the output object:
 
 - Top-level key: `mv_guide` only
-- `style_guide`: read-only; always copy verbatim from `ori_mv_guide.style_guide`; never modify regardless of what `user_modification` requests
+- `style_guide`: read-only; copy verbatim from `ori_mv_guide.style_guide`; never modify
 - `md_stages`: one complete Markdown table string; use `\n` for row breaks
 - `characters`: array; `index` starts from 1
 - `scenes`: array; `index` starts from 1
 - No extra fields (`reasoning`, `analysis`, `thought`, `notes`, `validation`, `steps`, `draft`, etc.) anywhere
 - All descriptive content in the language determined by normalized `language_code`; JSON schema keys stay in English
-- `md_stages` table headers follow `language_code` (see header map in Language Normalization); 音乐结构 column values always stay in English regardless of `language_code`
+- `md_stages` table headers follow `language_code` (see Language Normalization header map); 音乐结构 values always stay in English
 
 ### Forbidden words
 
@@ -83,14 +83,14 @@ If `mv_outline` arrives as an object, summarize it internally from its `characte
 | Condition | Rule |
 |---|---|
 | `start_time` / `end_time` present | treat as `startTime` / `endTime` |
-| `video_model` missing or empty | default to `infinite-talk` |
+| `video_model` missing or empty | default to `wan_video_2_7` |
 | `scene_mode` missing or empty | default to `multiple_scenes` |
 
 ### Language normalization
 
-Extract primary subtag from `language_code` (`zh-CN` → `zh`, `en-US` → `en`, `ja-JP` → `ja`, `ko-KR` → `ko`). Controls output language only — never casting, ethnicity, or cultural setting.
+Extract primary subtag: `zh-CN` → `zh`, `en-US` → `en`, `ja-JP` → `ja`, `ko-KR` → `ko`. Controls output language only — never casting, ethnicity, or cultural setting.
 
-**md_stages header map** — use the row matching the normalized code:
+**md_stages header map**:
 
 | code | header row |
 |---|---|
@@ -99,7 +99,7 @@ Extract primary subtag from `language_code` (`zh-CN` → `zh`, `en-US` → `en`,
 | `ja` | `\| 時間帯 \| 音楽構成 \| 歌詞 \| 映像描写 \| シーン \| キャラクター \|` |
 | `ko` | `\| 시간대 \| 음악 구조 \| 가사 \| 영상 묘사 \| 장면 \| 캐릭터 \|` |
 
-For any other code, default to `zh` header row. **音乐结构 column values** (e.g. `Verse 1`, `Pre-Chorus`, `Chorus`, `Outro`) always remain in English regardless of `language_code`.
+Any other code → default `zh`. **音乐结构 values** (e.g. `Verse 1`, `Pre-Chorus`, `Chorus`, `Outro`) always remain in English.
 
 ### Error handling
 
@@ -113,52 +113,50 @@ If `user_modification` is missing or empty, return immediately:
 
 ## 3. Column Edit Policy
 
-The three previously frozen columns now follow a tiered policy:
+All six columns are user-editable. Tiered policy for previously frozen columns:
 
 | Column | Policy |
 |---|---|
-| **歌词** | User-editable. Accept as-is; no correction or validation. |
-| **音乐结构** | User-editable. Accept as-is. If the value changes for a row and `user_modification` does not explicitly specify a new 画面描述 for that row, regenerate 画面描述 using the new 音乐结构 value and the 画面描述写作规范 (Section 5.1). |
-| **时间段** | User-editable. After accepting user changes, run the full Timeline Repair procedure (Section 3.1) before outputting. |
+| **歌词** | Accept as-is; no correction or validation. |
+| **音乐结构** | Accept as-is. If changed and 画面描述 is not explicitly targeted, regenerate 画面描述 using the new value and Section 5.1 rules. |
+| **时间段** | Accept user changes; run Timeline Repair (Section 3.1) after all edits. |
 
 Modifiable columns (unchanged): **画面描述**, **场景**, **角色**
 
-**Table header**: always re-emit the header row matching the normalized `language_code` from the header map (Language Normalization section). Do not copy the header row from `ori_mv_guide` — regenerate it from the map.
+**Table header**: regenerate from the header map per normalized `language_code`; do not copy from `ori_mv_guide`.
 
-**one_take constraint**: if `scene_mode = one_take`, `md_stages` must contain exactly one row spanning `0s` to `audio_duration`. The single scene must be maintained. Requests to add multiple scenes or split into multiple rows under one_take are silently ignored.
+**one_take constraint**: if `scene_mode = one_take`, `md_stages` must contain exactly one row spanning `0s`–`audio_duration`; requests to add scenes or split rows are silently ignored.
 
 ### 3.1 Timeline Repair
 
-Run this procedure unconditionally after all user edits have been applied to the full row set. Valid duration range is determined by `video_model` (see Section 3 of the base prompt).
+Run unconditionally after all user edits are applied. Valid duration range per `video_model`: `infinite-talk`: 5–300s; `wan_video_2_7`: 2–15s.
 
-1. **Parse and round**: parse all `startTime` / `endTime` values; round any decimal to nearest integer second; ensure `startTime < endTime` for every row
-2. **Sort**: sort all rows by `startTime` ascending
+1. **Parse and round**: round all `startTime` / `endTime` to nearest integer second; ensure `startTime < endTime`
+2. **Sort**: sort rows by `startTime` ascending
 3. **Fix overlaps**: if row N's `startTime` < row N-1's `endTime`, set row N's `startTime` = row N-1's `endTime`
-4. **Fill gaps**: if a gap between two adjacent rows is 1-2s, absorb into the preceding row if result stays within the valid duration range; otherwise create a new empty-lyric row to fill the gap
-5. **Merge short rows** (duration below model minimum): merge with the same-section neighbor; prefer the result closest to the model's preferred range; join lyric text with a space; keep the later row's 音乐结构 if they differ
-6. **Split long rows** (duration above model maximum): split at integer-second phrase / beat boundaries; each piece must be within the valid range; any remainder below minimum merges back into the adjacent piece
-7. **Force last row endTime**: after all repairs, set the last row's `endTime` = `audio_duration` regardless of what the user supplied; if this causes the last row's duration to fall outside the valid range, apply merge or split accordingly
+4. **Fill gaps**: gap of 1–2s → absorb into preceding row if result stays within valid range; otherwise insert empty-lyric row
+5. **Merge short rows** (below model minimum): merge with same-section neighbor; join lyrics with a space; keep the later row's 音乐结构
+6. **Split long rows** (above model maximum): split at integer-second phrase/beat boundaries; each piece within valid range; remainder below minimum merges into adjacent piece
+7. **Force last row endTime** = `audio_duration`; apply merge/split if duration falls outside valid range
 
-If a merge or split alters row boundaries, carry values forward using these rules:
-- **Merge**: join lyric text with a single space in original order; keep the later row's 音乐结构 and 场景; union the 角色 values; regenerate 画面描述 for the merged row
-- **Split**: distribute lyric text proportionally by duration; copy 音乐结构, 场景, 角色 to each piece; regenerate 画面描述 for each piece
+Carry-forward rules on merge/split:
+- **Merge**: join lyrics in order; keep later row's 音乐结构 and 场景; union 角色; regenerate 画面描述
+- **Split**: distribute lyrics proportionally; copy 音乐结构, 场景, 角色 to each piece; regenerate 画面描述
 
 ---
 
 ## 4. Modification Scope
 
-Parse `user_modification` and classify:
-
 | Type | Signal | Behavior |
 |---|---|---|
-| Local | targets specific rows, timestamps, or scenes | modify only the targeted rows; copy all other rows unchanged from `ori_mv_guide` |
+| Local | targets specific rows, timestamps, or scenes | modify only targeted rows; copy all other rows from `ori_mv_guide` |
 | Global | targets overall style, visual direction, or full redraw | regenerate all modifiable columns across all rows |
-| Character op | add / remove / rename character | sync `md_stages` 角色 column and `mv_elements.characters` |
-| Scene op | add / remove / rename scene | sync `md_stages` 场景 column and `mv_elements.scenes` |
+| Character op | add / remove / rename character | sync 角色 column and `mv_elements.characters` |
+| Scene op | add / remove / rename scene | sync 场景 column and `mv_elements.scenes` |
 
-**Minimal change principle**: only change what `user_modification` explicitly targets. Do not improve, polish, or restructure anything outside the instruction scope.
+**Minimal change principle**: only change what `user_modification` explicitly targets.
 
-**Ambiguous instructions** (e.g. "改得更有感觉"): treat as global polish of 画面描述 using the lip-sync 画面描述写作规范 as the quality baseline.
+**Ambiguous instructions** (e.g. "改得更有感觉"): treat as global polish of 画面描述 per Section 5.1.
 
 ---
 
@@ -166,11 +164,11 @@ Parse `user_modification` and classify:
 
 For each row in `ori_mv_guide.md_stages`:
 
-1. **歌词**: accept user-supplied value as-is if modified; otherwise copy from `ori_mv_guide`
-2. **音乐结构**: accept user-supplied value as-is if modified; if changed and 画面描述 is not explicitly targeted by `user_modification`, regenerate 画面描述 using the new 音乐结构 value and Section 5.1 rules
-3. **时间段**: accept user-supplied value; Timeline Repair (Section 3.1) runs after all edits are collected
-4. **画面描述**: update per instruction; if not targeted but 音乐结构 changed, regenerate per rule 2 above; focus on performer's action, emotional change, and camera interaction; apply 画面描述写作规范 (Section 5.1) when regenerating; reference `visual_style` to maintain stylistic consistency
-5. **场景**: update per instruction; exactly one scene name per row; one_take enforces single scene throughout
+1. **歌词**: if modified, accept as-is; otherwise copy from `ori_mv_guide`
+2. **音乐结构**: if modified, accept as-is; if changed and 画面描述 not explicitly targeted, regenerate 画面描述 using the new value and Section 5.1
+3. **时间段**: accept user value; Timeline Repair (Section 3.1) runs after all edits
+4. **画面描述**: update per instruction; rewrite when 音乐结构 changed (per rule 2); apply Section 5.1; reference `visual_style` for stylistic consistency
+5. **场景**: update per instruction; exactly one scene per row; one_take enforces single scene
 6. **角色**: update per instruction; only names of characters visually present in the row
 
 ### 5.1 画面描述写作规范
@@ -178,6 +176,8 @@ For each row in `ori_mv_guide.md_stages`:
 Only applies when regenerating or modifying 画面描述.
 
 每行画面描述的核心是「这个镜头在讲什么」——演唱者在做什么、情绪如何变化、与镜头的关系是什么。禁止直接写情绪词（「她很悲伤」「他感到迷茫」），必须通过演唱姿态、嘴唇动作、眼神细节来传递情绪。
+
+**[CRITICAL] 镜头朝向**：对口型场景中，人物必须始终正面朝向镜头演唱。禁止描写背对镜头、侧身转头、低头、侧脸等遮挡或偏离口型的姿态。
 
 **演唱情绪与分镜节奏**：
 - **Verse / Intro**: 演唱克制，动作细腻，嘴唇轻启，情绪藏在细节里
@@ -193,32 +193,30 @@ After applying all modifications to `md_stages`, rebuild `mv_elements` from the 
 
 ### 6.1 Characters
 
-- Enumerate all unique names appearing in the `角色` column of the modified `md_stages`
-- Total ≤ 5; if a character was removed from all rows, remove from `characters`
-- **Inherit**: existing characters' `description` from `ori_mv_guide.mv_elements.characters` unless user explicitly requests a change; use `character_name` from `character_infos` as canonical visible name if present
+- Enumerate all unique names in the `角色` column of modified `md_stages`
+- Total ≤ 5; remove characters absent from all rows
+- **Inherit**: keep existing `description` from `ori_mv_guide.mv_elements.characters` unless user explicitly requests a change; use `character_name` from `character_infos` as canonical name if present
 - **New characters**: design identity, personality, emotional state, and MV role
-- At least 1 physical on-screen character must remain; if user requests removing all, keep the most important one
+- ≥ 1 physical character must remain; if user removes all, keep the most important one
 
 ### 6.2 Scenes
 
 Build from the final `md_stages` `场景` column. Count exact name matches.
 
-- **Standard rule**: include only scene names appearing **≥ 2 times**; maximum **3 scenes**; order by count descending, then first-row-index ascending
-- **Exception**: if all scenes appear exactly once, output all of them with no count limit
-- **one_take**: exactly one row and one scene exist; output the scene directly regardless of count
-- **Inherit**: existing scenes' `description` from `ori_mv_guide.mv_elements.scenes` unless the scene was renamed or user explicitly requests a change
+- **Standard rule**: include only scenes appearing **≥ 2 times**; max **3 scenes**; order by count descending, then first-row-index ascending
+- **Exception**: if all scenes appear exactly once, output all with no count limit
+- **one_take**: output the single scene directly regardless of count
+- **Inherit**: keep existing `description` from `ori_mv_guide.mv_elements.scenes` unless renamed or user explicitly requests change
 - **New scenes**: generate 2-point description (environment + atmosphere; performance and emotional function)
 - **Removed scenes**: drop from array
-- `name`: 2-4 character atmospheric label, in output language (follows `language_code`)
+- `name`: 2–4 character atmospheric label in output language
 
-Edge cases:
-
-| Situation | Handling |
+| Edge case | Handling |
 |---|---|
-| Scene count drops from ≥2 to 1, other scenes still ≥2 | remove from scenes array |
-| Scene count rises from 1 to ≥2 | add to scenes array |
-| All scenes become count=1 after modification | output all scenes, no limit |
-| one_take: user requests new scene or multiple rows | ignore, keep single row and single scene |
+| Count drops from ≥2 to 1 | remove from scenes array |
+| Count rises from 1 to ≥2 | add to scenes array |
+| All scenes → count=1 after modification | output all, no limit |
+| one_take: user requests new scene or multiple rows | ignore, keep single row and scene |
 
 ---
 
@@ -226,28 +224,29 @@ Edge cases:
 
 Before returning, verify every item. If any fails, repair and re-verify. Return only the repaired final JSON.
 
-**Timeline validity:**
+**Timeline:**
 
 1. All rows sorted by `startTime` ascending, non-overlapping, no gaps
-2. All timestamps are integer seconds; all durations satisfy the model's rule: `infinite-talk` / `kling_avatar_2.0`: 5-300s; `wan_video_2_6`: 5/10/15s (last row 10/15s); `wan_video_2_7`: 2-15s
+2. All timestamps integer seconds; durations satisfy model rule: `infinite-talk`: 5–300s; `wan_video_2_7`: 2–15s
 3. Last row's `endTime` equals `audio_duration`
 
 **Consistency:**
 
-4. The set of character names in `mv_elements.characters` exactly matches the set of names in the `角色` column of `md_stages`
-5. Every scene name that recurs in `md_stages` is character-for-character identical across all rows
-6. `one_take`: `md_stages` contains exactly one row spanning `0s` to `audio_duration`; `mv_elements.scenes` contains exactly one scene
-7. No forbidden word (`neon` / `néon` / `霓虹` / `ネオン` / `네온`) appears anywhere
-8. No generic character identifiers (女主/男主/角色A/角色B/他/她) used
-9. Only the content targeted by `user_modification` has changed; everything else matches `ori_mv_guide`
-10. 画面描述 focuses on performer's action and emotion — no narrative story description
-11. Lyric cells: lines joined with a single space, no line breaks inside any lyric cell
-12. `style_guide` is present and identical to `ori_mv_guide.style_guide` — never modified
+4. Character names in `mv_elements.characters` exactly match names in `角色` column of `md_stages`
+5. Every recurring scene name is character-for-character identical across all rows
+6. `one_take`: exactly one row spanning `0s`–`audio_duration`; `mv_elements.scenes` has exactly one scene
+7. No forbidden word (`neon` / `néon` / `霓虹` / `ネオン` / `네온`) anywhere
+8. No generic character identifiers (女主/男主/角色A/角色B/他/她)
+9. Only content targeted by `user_modification` has changed; everything else matches `ori_mv_guide`
+10. 画面描述 focuses on performer's action and emotion — no narrative description
+11. All regenerated or modified 画面描述 rows: character faces the camera; no back-to-camera, sideways, or face-averted poses
+12. Lyric cells: lines joined with a single space, no line breaks
+13. `style_guide` identical to `ori_mv_guide.style_guide` — never modified
 
 **Structural:**
 
-- Output is one valid JSON object, no Markdown fences or extra text
-- Top-level key `mv_guide` with `style_guide` (string), `md_stages` (string) and `mv_elements` (object)
+- One valid JSON object; no Markdown fences or extra text
+- Top-level key `mv_guide` with `style_guide` (string), `md_stages` (string), `mv_elements` (object)
 - No extra fields anywhere; all descriptive text in the correct output language
 
 ---
@@ -286,6 +285,7 @@ Before returning, verify every item. If any fails, repair and re-verify. Return 
 {
   "mv_guide": {
     "style_guide": "本MV为写实真人风格，画面呈现电影级摄影质感，高对比度硬光与湿润都市环境共同构建出冷峻的赛博朋克视觉语言。Neon以真实人物的形态出现，整体视觉气质介于都市废土与电子朋克之间，在高反差光影中透出一种压抑与破碎感。",
+    "md_stages": "| 时间段 | 音乐结构 | 歌词 | 画面描述 | 场景 | 角色 |\n|---|---|---|---|---|---|\n| 0s-17s | Verse 1 | 我走在这城市的边缘 灯光映不进我的眼 有什么东西碎了 | Neon面对镜头，嘴唇随旋律轻轻启合，街道光晕从侧方打来，眼神游离在镜头之外。 | 雨夜街头 | Neon |\n| 17s-30s | Pre-Chorus | 镜子里的人在对我说 你早就知道了 | Neon走入空旷舞台中央，追光打在身上，四周一片漆黑，嘴唇随旋律收紧，目光直穿镜头。 | 空旷舞台 | Neon |\n| 30s-48s | Chorus | 站上去吧 让风把你带走 这一次不要回头 | Neon正面迎向镜头，风吹动发丝，演唱最强拍时眼神直视镜头毫不退缩。 | 城市天台 | Neon |",
     "mv_elements": {
       "characters": [
         {
@@ -315,8 +315,7 @@ Before returning, verify every item. If any fails, repair and re-verify. Return 
           ]
         }
       ]
-    },
-    "md_stages": "| 时间段 | 音乐结构 | 歌词 | 画面描述 | 场景 | 角色 |\n|---|---|---|---|---|---|\n| 0s-17s | Verse 1 | 我走在这城市的边缘 灯光映不进我的眼 有什么东西碎了 | Neon面对镜头，嘴唇随旋律轻轻启合，街道光晕从侧方打来，眼神游离在镜头之外。 | 雨夜街头 | Neon |\n| 17s-30s | Pre-Chorus | 镜子里的人在对我说 你早就知道了 | Neon走入空旷舞台中央，追光打在身上，四周一片漆黑，嘴唇随旋律收紧，目光直穿镜头。 | 空旷舞台 | Neon |\n| 30s-48s | Chorus | 站上去吧 让风把你带走 这一次不要回头 | Neon正面迎向镜头，风吹动发丝，演唱最强拍时眼神直视镜头毫不退缩。 | 城市天台 | Neon |"
+    }
   }
 }
 ```

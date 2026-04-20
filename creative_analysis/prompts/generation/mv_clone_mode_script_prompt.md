@@ -272,6 +272,8 @@ Each item: `index` (int from 1), `name` (short atmospheric label matching or clo
   - **动态** / **Motion**: ambient environmental motion (or "静止" if none)
   - **现实系数** / **Reality**: `realistic` / `stylized-realistic` / `heightened-reality` only — derived from the reference MV's visual style; `surreal` and `fantasy` are forbidden
 
+**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Example: `现实系数-heightened-reality`, never `现实系数：heightened-reality`. This applies to all 5 fields in the seed.
+
 ### Style Guide
 2–4 sentences. Rendering style and character visual presence — line quality, color treatment, aesthetic impression. No clothing or accessories. Multiple characters: describe each by name.
 

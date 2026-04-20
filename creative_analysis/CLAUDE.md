@@ -23,9 +23,22 @@ Tunee MV Studio 的 AI 提示词库。每个文件是一个独立的 System Prom
 
 | 文件 | 用途 |
 |---|---|
-| `mv_creative_script_modification_prompt.md` | 修改模式：对已有创意导览应用用户修改指令 |
-| `mv_creative_script_lipsync_modification_prompt.md` | 修改模式（lipsync 版） |
-| `mv_clone_mode_modification_prompt.md` | Clone 修改模式：对已有 clone 导览应用用户修改指令，保持参考 MV 视觉保真度 |
+| `mv_creative_script_modification_prompt.md` | 修改模式：对已有创意导览应用用户修改指令（单轮） |
+| `mv_creative_script_modification_prompt_memory.md` | 修改模式（多轮记忆版） |
+| `mv_creative_script_lipsync_modification_prompt.md` | 修改模式（lipsync 版，单轮） |
+| `mv_creative_script_lipsync_modification_prompt_memory.md` | 修改模式（lipsync 多轮记忆版） |
+| `mv_clone_mode_modification_prompt.md` | Clone 修改模式：对已有 clone 导览应用用户修改指令（单轮） |
+| `mv_clone_mode_modification_prompt_memory.md` | Clone 修改模式（多轮记忆版） |
+
+### 根目录辅助文档
+
+| 文件 | 内容 |
+|---|---|
+| `timeline-normalization-spec.md` | 时间轴规范化完整规范 |
+| `timeline-normalization-rules.md` | 时间轴校验与纠正规则 |
+| `时间段划分边界情况汇总.md` | 时间段划分的边界案例汇总 |
+| `EXPERIENCE.md` | 经验沉淀文档 |
+| `README.md` | 模块说明 |
 
 ---
 
@@ -55,9 +68,11 @@ Tunee MV Studio 的 AI 提示词库。每个文件是一个独立的 System Prom
 
 | video_model | 每行时长范围 | 末行约束 | 总和 |
 |---|---|---|---|
-| `infinite-talk` / `kling_avatar_2.0` | 5s–300s | ≥ 5s | — |
-| `wan_video_2_6` | {5, 10, 15}s | {10, 15}s | = audio_duration |
+| `infinite-talk` | 5s–300s | ≥ 5s | — |
+| `wan_video_2_7` | 2s–15s（连续范围） | ≥ 2s | = audio_duration |
 | `one_take` | = audio_duration | — | 仅 1 行 |
+| `seedance_2_0` | 4s–15s | ≥ 4s | = audio_duration |
+| `kling_3_0_omni` | 4s–15s | ≥ 4s | = audio_duration |
 
 ---
 
@@ -92,5 +107,4 @@ mv_{模式}_{变体}_prompt{_memory}.md
 
 - `story_mode` / `visions` / `clone_mode` 的 timeline normalization 逻辑已统一，修改时保持三个文件一致
 - `lipsync` 的分段规则与上述模式完全独立，不要混用
-- `wan_video_2_6` 算法依赖整除性（audio_duration 须为 5 的倍数），遇到非整除情况会有近似处理
 - `_violations` 是条件输出字段，只在真实违规时存在；修改任何时间轴规则时需同步检查 `_violations` 逻辑

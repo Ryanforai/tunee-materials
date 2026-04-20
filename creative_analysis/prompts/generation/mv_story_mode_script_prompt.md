@@ -328,6 +328,8 @@ Each item: `index` (int from 1), `name` (short atmospheric label, concise phrase
   - **动态** / **Motion**: ambient environmental motion (or "静止" if none)
   - **现实系数** / **Reality**: `realistic` / `stylized-realistic` / `heightened-reality` only — `surreal` and `fantasy` are forbidden in story_mode
 
+**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Example: `现实系数-stylized-realistic`, never `现实系数：stylized-realistic`. This applies to all 5 fields in the seed.
+
 ### Style Guide
 2–4 sentences. Rendering style and character visual presence — line quality, color treatment, aesthetic impression. No clothing or accessories. Multiple characters: describe each by name. Source: `visual_style` only; omit entirely if empty.
 </mv_elements_generation>
@@ -391,7 +393,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "天台边缘",
           "description": [
             "韩国 — 室外，首尔公寓楼天台；护栏边缘开阔，城市天际线在视平线以下；夜间城市漫射光从四面低位打入。",
-            "光线：城市漫射环境光，2800K暖黄，低强度无方向；色调：深蓝黑、城市暖橙、褪色混凝土灰；材质：粗糙混凝土地面、锈蚀铁质护栏、空调外机金属面板；动态：远处城市光点闪烁，风持续从低处涌上；现实系数：stylized-realistic"
+            "光线：城市漫射环境光，2800K暖黄，低强度无方向；色调：深蓝黑、城市暖橙、褪色混凝土灰；材质：粗糙混凝土地面、锈蚀铁质护栏、空调外机金属面板；动态：远处城市光点闪烁，风持续从低处涌上；现实系数-stylized-realistic"
           ]
         },
         {
@@ -399,7 +401,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "地下走廊",
           "description": [
             "韩国 — 室内，公寓楼地下层走廊；窄长封闭廊道，天花板低压；顶部日光灯管间隔排列，灯光不稳定。",
-            "光线：顶部日光灯管，5000K冷白，中强度间歇闪烁；色调：灰白、阴影深灰、灯管冷蓝晕；材质：水泥墙面、PVC地板、金属门框；动态：日光灯交替闪灭，远端偶有管道水声；现实系数：heightened-reality"
+            "光线：顶部日光灯管，5000K冷白，中强度间歇闪烁；色调：灰白、阴影深灰、灯管冷蓝晕；材质：水泥墙面、PVC地板、金属门框；动态：日光灯交替闪灭，远端偶有管道水声；现实系数-heightened-reality"
           ]
         },
         {
@@ -407,7 +409,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "天台边缘·雨",
           "description": [
             "韩国 — 室外，同一天台，降雨时刻；护栏和地面均湿润，城市光晕在雨幕中漫散；光线方向同前但强度减弱。",
-            "光线：城市漫射光透过雨幕，2600K深暖，低强度散射；色调：深灰蓝、湿混凝土冷灰、雨水反光银白；材质：湿混凝土地面、湿透布料、雨水覆盖的铁质护栏；动态：雨水沿护栏持续流下，外套布料被风掀动；现实系数：stylized-realistic"
+            "光线：城市漫射光透过雨幕，2600K深暖，低强度散射；色调：深灰蓝、湿混凝土冷灰、雨水反光银白；材质：湿混凝土地面、湿透布料、雨水覆盖的铁质护栏；动态：雨水沿护栏持续流下，外套布料被风掀动；现实系数-stylized-realistic"
           ]
         }
       ]
