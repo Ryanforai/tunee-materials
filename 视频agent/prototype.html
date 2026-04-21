@@ -5,59 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MV Agent</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600;6..96,700&display=swap');
 
+  /* ═══ Color system — light theme, Claude-inspired ═══ */
   :root {
-    --bg: oklch(0.975 0.003 65);
-    --bg-surface: oklch(1.0 0.002 65);
-    --bg-elevated: oklch(0.96 0.005 65);
-    --bg-hover: oklch(0.93 0.008 65);
-    --border-subtle: oklch(0.91 0.008 65);
-    --border: oklch(0.85 0.01 65);
-    --text-primary: oklch(0.20 0.015 65);
-    --text-secondary: oklch(0.50 0.02 65);
-    --text-tertiary: oklch(0.65 0.015 65);
-    --accent: oklch(0.62 0.20 55);
-    --accent-soft: oklch(0.72 0.16 55);
-    --accent-muted: oklch(0.62 0.20 55 / 0.10);
-    --accent-border: oklch(0.62 0.20 55 / 0.35);
-    --black: oklch(0.18 0.02 65);
-    --success: oklch(0.65 0.18 145);
+    --bg:           oklch(0.98 0.002 265);
+    --bg-surface:   oklch(1 0 0);
+    --bg-elevated:  oklch(0.96 0.003 265);
+    --bg-hover:     oklch(0.93 0.004 265);
+    --border-subtle:oklch(0.92 0.003 265);
+    --border:       oklch(0.87 0.005 265);
+    --text-primary: oklch(0.20 0.005 265);
+    --text-secondary:oklch(0.45 0.006 265);
+    --text-tertiary:oklch(0.62 0.005 265);
+    --accent:       oklch(0.55 0.18 265);
+    --accent-soft:  oklch(0.65 0.14 265);
+    --accent-muted: oklch(0.55 0.18 265 / 0.08);
+    --accent-border:oklch(0.55 0.18 265 / 0.25);
+    --text-accent:  oklch(0.55 0.18 265);
+    --white:        oklch(0.98 0.002 265);
+    --success:      oklch(0.60 0.14 145);
     --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
     --space-5: 24px; --space-6: 32px; --space-7: 48px;
-    --font-body: 'DM Sans', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
-    --text-md: 1rem; --text-lg: 1.125rem; --text-xl: 1.375rem;
-    --radius: 8px; --radius-lg: 12px; --radius-xl: 16px;
+    --font-body:    'Bricolage Grotesque', sans-serif;
+    --font-display: 'Bodoni Moda', serif;
+    --font-mono:    'JetBrains Mono', monospace;
+    --text-xs: 0.6875rem; --text-sm: 0.8125rem; --text-base: 0.875rem;
+    --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.625rem;
+    --radius: 6px; --radius-lg: 10px; --radius-xl: 14px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { font-family: var(--font-body); font-size: 16px; -webkit-font-smoothing: antialiased; }
-  body { background: var(--bg); color: var(--text-primary); height: 100vh; overflow: hidden; line-height: 1.6; }
+  body { background: var(--bg); color: var(--text-primary); height: 100vh; overflow: hidden; line-height: 1.5; }
 
   .app { display: flex; height: 100vh; }
 
   /* ═══ Sidebar ═══ */
   .sidebar {
-    width: 360px; min-width: 360px; background: var(--bg-surface);
+    width: 340px; min-width: 340px; background: var(--bg-surface);
     border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; position: relative;
   }
-  .sidebar-top { padding: var(--space-5) var(--space-5) var(--space-4); border-bottom: 1px solid var(--border); }
-  .sidebar-top h1 { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
-  .sidebar-top .project { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-1); }
-  .persona-chip {
-    display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3);
-    padding: var(--space-2) var(--space-3); border-radius: 20px; background: var(--accent-muted);
-    font-size: var(--text-xs); color: var(--accent); font-weight: 500;
+  .sidebar-top {
+    padding: var(--space-5) var(--space-5) var(--space-4); border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: var(--space-2);
   }
-  .persona-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .sidebar-top h1 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .sidebar-top .project { font-size: var(--text-xs); color: var(--text-tertiary); }
+  .persona-chip {
+    display: inline-flex; align-items: center; gap: var(--space-2); width: fit-content;
+    padding: var(--space-1) var(--space-3); border-radius: 20px; background: var(--accent-muted);
+    font-size: var(--text-xs); color: var(--text-accent); font-weight: 500;
+  }
+  .persona-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 
   .messages {
     flex: 1; overflow-y: auto; padding: var(--space-5); display: flex;
     flex-direction: column; gap: var(--space-5); scrollbar-width: thin; scrollbar-color: var(--border) transparent;
   }
-  .msg { animation: fadeUp 0.25s ease-out; }
+  .msg { animation: fadeUp 0.3s ease-out; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .msg-label { font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: var(--space-2); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
   .msg-text { font-size: var(--text-base); line-height: 1.65; max-width: 92%; }
@@ -65,27 +71,27 @@
   .msg.ai .msg-text { color: var(--text-secondary); }
   .msg-meta { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
   .chip { font-family: var(--font-mono); font-size: 11px; padding: var(--space-1) var(--space-2); border-radius: 4px; background: var(--bg-elevated); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
-  .chip.accent { color: var(--accent); border-color: var(--accent-border); background: var(--accent-muted); }
+  .chip.accent { color: var(--text-accent); border-color: var(--accent-border); background: var(--accent-muted); }
 
   .quick-row { display: flex; gap: var(--space-2); padding: 0 var(--space-5) var(--space-4); overflow-x: auto; scrollbar-width: none; }
   .quick-row::-webkit-scrollbar { display: none; }
   .quick-btn {
-    flex-shrink: 0; padding: var(--space-2) var(--space-3); border-radius: 16px; border: 1px solid var(--border);
+    flex-shrink: 0; padding: var(--space-2) var(--space-3); border-radius: 16px; border: 1px solid var(--border-subtle);
     background: transparent; color: var(--text-tertiary); font-size: var(--text-xs); font-family: var(--font-body);
     cursor: pointer; transition: all 0.15s ease;
   }
-  .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-muted); }
+  .quick-btn:hover { border-color: var(--accent); color: var(--text-accent); background: var(--accent-muted); }
 
   /* ═══ Input ═══ */
   .input-area { padding: var(--space-4) var(--space-5) var(--space-5); border-top: 1px solid var(--border); position: relative; }
   .input-bar {
     display: flex; align-items: flex-end; gap: var(--space-2); background: var(--bg-elevated);
-    border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-2) var(--space-3);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
   .input-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-muted); }
   .btn-upload {
-    width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent;
+    width: 28px; height: 28px; border-radius: var(--radius); border: none; background: transparent;
     color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: all 0.15s ease; flex-shrink: 0;
   }
@@ -96,18 +102,18 @@
   }
   .input-bar textarea::placeholder { color: var(--text-tertiary); }
   .btn-send {
-    width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--black);
-    color: oklch(0.98 0.002 65); cursor: pointer; display: flex; align-items: center;
+    width: 28px; height: 28px; border-radius: var(--radius); border: none; background: var(--text-primary);
+    color: var(--bg); cursor: pointer; display: flex; align-items: center;
     justify-content: center; transition: opacity 0.15s ease; flex-shrink: 0;
   }
-  .btn-send:hover { opacity: 0.8; }
+  .btn-send:hover { opacity: 0.85; }
   .input-foot { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-2); padding: 0 var(--space-1); }
   .model-label {
     display: flex; align-items: center; gap: var(--space-1); font-size: var(--text-xs); color: var(--text-tertiary);
-    cursor: pointer; padding: var(--space-1) var(--space-2); border-radius: 4px; transition: all 0.15s ease;
+    cursor: pointer; padding: var(--space-1) var(--space-2); border-radius: var(--radius); transition: all 0.15s ease;
   }
   .model-label:hover { background: var(--bg-elevated); color: var(--text-secondary); }
-  .btn-settings { background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: var(--space-1); border-radius: 4px; transition: all 0.15s ease; }
+  .btn-settings { background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: var(--space-1); border-radius: var(--radius); transition: all 0.15s ease; }
   .btn-settings:hover { background: var(--bg-elevated); color: var(--text-secondary); }
 
   .settings-panel {
@@ -130,37 +136,28 @@
   /* ═══ Canvas Area ═══ */
   .canvas-viewport {
     flex: 1; overflow: hidden; position: relative; cursor: grab;
-    background:
-      radial-gradient(circle, var(--border-subtle) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background: var(--bg);
   }
   .canvas-viewport.grabbing { cursor: grabbing; }
-  .canvas-viewport.grabbing .canvas { cursor: grabbing; }
 
   .canvas {
     position: absolute;
     transform-origin: 0 0;
     transition: transform 0.1s ease-out;
-    width: 900px;
     padding: var(--space-7) var(--space-6);
     display: flex;
     flex-direction: column;
-    gap: var(--space-7);
+    gap: var(--space-6);
+    min-width: max-content;
+    height: fit-content;
   }
 
   /* Zoom controls */
   .zoom-controls {
-    position: absolute;
-    bottom: var(--space-5);
-    right: var(--space-5);
-    display: flex;
-    gap: var(--space-1);
-    z-index: 20;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-1);
-    box-shadow: 0 2px 12px oklch(0 0 0 / 0.06);
+    position: absolute; bottom: var(--space-5); right: var(--space-5); z-index: 20;
+    display: flex; gap: var(--space-1);
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: var(--space-1); box-shadow: 0 2px 12px oklch(0 0 0 / 0.06);
   }
   .zoom-btn {
     width: 32px; height: 32px; border-radius: var(--radius); border: none;
@@ -176,7 +173,7 @@
     min-width: 40px; justify-content: center;
   }
 
-  /* ═══ Preview trigger (top-right) ═══ */
+  /* Preview trigger */
   .preview-trigger {
     position: absolute; top: var(--space-5); right: var(--space-6); z-index: 20;
     padding: var(--space-2) var(--space-4); border-radius: 20px; border: 1px solid var(--border);
@@ -185,85 +182,440 @@
     display: flex; align-items: center; gap: var(--space-2);
     box-shadow: 0 2px 12px oklch(0 0 0 / 0.06);
   }
-  .preview-trigger:hover { border-color: var(--accent); color: var(--accent); }
+  .preview-trigger:hover { border-color: var(--accent); color: var(--text-accent); }
   .preview-trigger svg { width: 14px; height: 14px; }
 
-  /* ═══ Canvas content blocks ═══ */
-  .section-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); font-weight: 600; margin-bottom: var(--space-4); }
-  .divider { height: 1px; background: var(--border); margin: var(--space-2) 0; }
+  /* Canvas area navigation — top-left floating bar */
+  .area-nav {
+    position: absolute; top: var(--space-5); left: var(--space-6); z-index: 20;
+    display: flex; align-items: center; gap: 2px;
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 3px;
+    box-shadow: 0 2px 12px oklch(0 0 0 / 0.06);
+    max-width: calc(100vw - 420px);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .area-nav::-webkit-scrollbar { display: none; }
 
-  .music-block { display: grid; grid-template-columns: 240px 1fr; gap: var(--space-6); align-items: start; }
+  .area-nav-item {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: 9px; border: none; background: transparent;
+    color: var(--text-secondary); font-size: var(--text-xs); font-family: var(--font-body);
+    cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+    font-weight: 500;
+  }
+  .area-nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+  .area-nav-item.active {
+    background: var(--accent); color: var(--bg);
+    box-shadow: 0 1px 4px oklch(0.55 0.18 265 / 0.3);
+  }
+  .area-nav-item svg { width: 13px; height: 13px; opacity: 0.7; }
+  .area-nav-item.active svg { opacity: 1; }
+
+  .area-nav-sep {
+    width: 1px; height: 16px; background: var(--border-subtle);
+    margin: 0 2px; flex-shrink: 0;
+  }
+
+  .area-nav-add {
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 7px; border: 1px dashed var(--border-subtle);
+    background: transparent; color: var(--text-tertiary); cursor: pointer;
+    transition: all 0.15s ease; flex-shrink: 0; margin-left: 2px;
+  }
+  .area-nav-add:hover { border-color: var(--accent); color: var(--text-accent); background: var(--accent-muted); }
+  .area-nav-add svg { width: 12px; height: 12px; }
+
+  /* Canvas content blocks */
+  .section-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); font-weight: 600; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+  .divider { height: 1px; background: var(--border-subtle); margin: var(--space-2) 0; }
+
+  /* ── Regionalized canvas layout ── */
+  .canvas-regions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: var(--space-5);
+    min-width: 1480px;
+  }
+
+  /* Creation areas — horizontal layout */
+  .creation-workspace {
+    display: flex;
+    gap: var(--space-6);
+    align-items: stretch;
+    min-width: fit-content;
+  }
+
+  /* Music creation — sidebar width */
+  .creation-boundary.music-creation {
+    flex: 0 0 720px;
+  }
+
+  /* MV projects container — fills remaining space */
+  .mv-projects-column {
+    flex: 1;
+    display: flex;
+    gap: var(--space-6);
+    align-items: stretch;
+    overflow-x: auto;
+    padding-bottom: var(--space-4);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .mv-projects-column::-webkit-scrollbar { height: 4px; }
+  .mv-projects-column::-webkit-scrollbar-track { background: transparent; }
+  .mv-projects-column::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .mv-projects-column::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+  /* MV project — fills available width */
+  .creation-boundary.mv-project {
+    flex: 1 1 1560px;
+    margin-bottom: 0;
+  }
+
+  /* MV creation area — subtle dashed boundary */
+  .creation-boundary {
+    border: 1.5px dashed var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    position: relative;
+  }
+  .creation-boundary::before {
+    content: 'MV 创作';
+    position: absolute; top: -10px; left: var(--space-5);
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-tertiary); font-weight: 500;
+    background: var(--bg);
+    padding: 0 var(--space-2);
+  }
+
+  /* Music creation area */
+  .creation-boundary.music-creation::before {
+    content: '音乐创作';
+  }
+
+  .music-creation-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: var(--space-4);
+  }
+  .music-creation-header h4 {
+    font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);
+    margin: 0;
+  }
+  .btn-generate-music {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius);
+    border: 1px solid var(--border-subtle); background: var(--bg-surface);
+    color: var(--text-secondary); font-size: var(--text-xs); font-family: var(--font-body);
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .btn-generate-music:hover { border-color: var(--accent); color: var(--text-accent); }
+  .btn-generate-music svg { width: 14px; height: 14px; }
+
+  .generated-music-list {
+    display: flex; flex-direction: column; gap: var(--space-3);
+  }
+
+  .music-item {
+    display: flex; align-items: center; gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    transition: all 0.15s ease;
+  }
+  .music-item:hover {
+    border-color: var(--border);
+    box-shadow: 0 2px 8px oklch(0 0 0 / 0.04);
+  }
+  .music-item .music-icon {
+    width: 40px; height: 40px; border-radius: var(--radius);
+    background: linear-gradient(160deg, var(--bg-elevated), var(--bg-hover));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--text-accent); flex-shrink: 0;
+  }
+  .music-item .music-meta { flex: 1; min-width: 0; }
+  .music-item .music-name { font-size: var(--text-sm); font-weight: 500; color: var(--text-primary); }
+  .music-item .music-tags { display: flex; gap: var(--space-2); margin-top: 2px; flex-wrap: wrap; }
+  .music-item .music-tag {
+    font-size: 10px; color: var(--text-tertiary);
+    padding: 1px 6px; border-radius: 4px;
+    background: var(--bg-elevated);
+  }
+  .music-item .music-actions {
+    display: flex; gap: var(--space-2); align-items: center; flex-shrink: 0;
+  }
+  .btn-create-mv {
+    display: flex; align-items: center; gap: var(--space-1);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius);
+    border: 1px solid var(--accent); background: transparent;
+    color: var(--accent); font-size: var(--text-xs); font-family: var(--font-body);
+    cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+  }
+  .btn-create-mv:hover { background: var(--accent-muted); }
+  .btn-create-mv svg { width: 12px; height: 12px; }
+
+  .music-item .btn-delete-music {
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    border: none; background: transparent;
+    color: var(--text-tertiary); cursor: pointer;
+    opacity: 0; transition: all 0.15s ease;
+  }
+  .music-item:hover .btn-delete-music { opacity: 1; }
+  .btn-delete-music:hover { background: oklch(0.65 0.15 25); color: oklch(0.55 0.2 25); }
+  .btn-delete-music svg { width: 14px; height: 14px; }
+
+  /* MV project header */
+  .mv-project-header {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .mv-project-title-row {
+    display: flex; align-items: center; gap: var(--space-2);
+  }
+  .mv-project-title {
+    font-size: var(--text-md); font-weight: 600; color: var(--text-primary);
+  }
+  .btn-delete-mv {
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    border: none; background: transparent;
+    color: var(--text-tertiary); cursor: pointer;
+    opacity: 0; transition: all 0.15s ease;
+  }
+  .mv-project:hover .btn-delete-mv { opacity: 1; }
+  .btn-delete-mv:hover { background: oklch(0.65 0.15 25); color: oklch(0.55 0.2 25); }
+  .btn-delete-mv svg { width: 14px; height: 14px; }
+
+  .mv-project-subtitle {
+    font-size: var(--text-xs); color: var(--text-tertiary);
+  }
+
+  /* Chrome-style region tabs */
+  .region-tab-bar {
+    display: flex; align-items: flex-end; gap: 0;
+    padding: 0 var(--space-2); margin-bottom: -1px; position: relative; z-index: 2;
+  }
+  .region-tab {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 0 var(--space-4); height: 32px;
+    font-size: var(--text-xs); font-weight: 500; color: var(--text-secondary);
+    background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+    border-bottom: none; border-radius: var(--radius) var(--radius) 0 0;
+    cursor: default; user-select: none; position: relative;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .region-tab .tab-icon {
+    width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0;
+  }
+  .region-tab.active {
+    color: var(--text-primary); background: var(--bg-surface);
+    border-color: var(--border); border-bottom: 1px solid var(--bg-surface);
+  }
+  .region-tab.active .tab-icon { opacity: 0.8; }
+  .region-tab-body {
+    background: var(--bg-surface);
+    border: 1px solid var(--border); border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  /* Region wrappers */
+  .region-wrapper { }
+  .region-wrapper.music { grid-column: 1; grid-row: 1; }
+  .region-wrapper.understanding { grid-column: 2; grid-row: 1; }
+  .region-wrapper.proposals { grid-column: 1 / -1; grid-row: 2; }
+  .region-wrapper.assets { grid-column: 1 / -1; grid-row: 3; }
+
+
+  .music-content { display: flex; gap: var(--space-5); align-items: center; }
   .album {
-    aspect-ratio: 1; border-radius: var(--radius-xl);
-    background: linear-gradient(160deg, oklch(0.92 0.04 55), oklch(0.88 0.06 65));
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3);
-    position: relative; overflow: hidden; border: 1px solid var(--border);
+    width: 100px; height: 100px; flex-shrink: 0; border-radius: var(--radius-lg);
+    background: linear-gradient(160deg, var(--bg-elevated), var(--bg-hover));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2);
+    position: relative; overflow: hidden; border: 1px solid var(--border-subtle);
+    cursor: pointer; transition: all 0.2s ease;
   }
-  .album::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 70%, oklch(0.80 0.10 55 / 0.3), transparent 60%); }
-  .album .note { font-size: 2rem; color: var(--accent); z-index: 1; }
-  .album .title { font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.02em; z-index: 1; }
-  .album .dur { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); z-index: 1; }
-  .analysis-body { display: flex; flex-direction: column; gap: var(--space-5); }
-  .meta-grid { display: flex; gap: var(--space-6); flex-wrap: wrap; }
-  .meta { display: flex; flex-direction: column; gap: var(--space-1); }
-  .meta dt { font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-  .meta dd { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: 500; color: var(--text-primary); }
+  .album::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 70%, oklch(0.55 0.18 265 / 0.06), transparent 60%); }
+  .album .note { font-size: 1.25rem; color: var(--text-accent); z-index: 1; }
+  .album .title { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 600; z-index: 1; }
+  .album .dur { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); z-index: 1; }
+  .album:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-muted); }
+  .album .play-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: oklch(0 0 0 / 0); transition: background 0.2s ease; z-index: 2;
+  }
+  .album:hover .play-overlay { background: oklch(0 0 0 / 0.08); }
+  .album .play-overlay svg { width: 28px; height: 28px; color: var(--bg-surface); opacity: 0; transition: opacity 0.2s ease; filter: drop-shadow(0 1px 4px oklch(0 0 0 / 0.3)); }
+  .album:hover .play-overlay svg { opacity: 1; }
+  .album.playing .play-overlay svg { opacity: 1; }
+  .album.playing { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-muted); }
+  .music-info { display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+  .music-info .song-name { font-family: var(--font-display); font-size: var(--text-md); font-weight: 600; }
+  .music-info .meta-row { display: flex; gap: var(--space-4); }
+  .music-info .meta-item { font-size: var(--text-xs); color: var(--text-secondary); }
+  .music-info .meta-item span { font-family: var(--font-mono); font-weight: 500; color: var(--text-primary); }
+
+  .analysis-body { display: flex; flex-direction: column; gap: var(--space-4); }
   .curve-section h3 { font-size: var(--text-sm); color: var(--text-secondary); font-weight: 500; margin-bottom: var(--space-3); }
-  .curve-svg { width: 100%; height: 64px; }
+  .curve-svg { width: 100%; height: 56px; }
   .keywords { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-  .kw { font-size: var(--text-xs); padding: var(--space-1) var(--space-3); border-radius: 12px; border: 1px solid var(--border); color: var(--text-tertiary); background: transparent; transition: all 0.15s ease; }
-  .kw:hover { color: var(--text-secondary); }
-  .kw.mood { color: var(--accent); border-color: var(--accent-border); background: var(--accent-muted); }
-
-  .proposal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
-  .proposal {
-    border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden;
-    cursor: pointer; transition: all 0.2s ease; position: relative; background: var(--bg-surface);
+  .kw {
+    font-size: var(--text-xs); padding: var(--space-1) var(--space-3); border-radius: 12px;
+    border: 1px solid var(--border-subtle); color: var(--text-tertiary); background: transparent;
+    transition: all 0.15s ease;
   }
-  .proposal:hover { border-color: var(--text-tertiary); transform: translateY(-2px); box-shadow: 0 4px 16px oklch(0 0 0 / 0.06); }
-  .proposal.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-muted); }
-  .proposal .sel {
-    position: absolute; top: var(--space-3); right: var(--space-3); width: 20px; height: 20px;
-    border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center;
-    justify-content: center; z-index: 2; transition: all 0.15s ease; background: oklch(0.98 0.002 65 / 0.8);
-  }
-  .proposal.active .sel { border-color: var(--accent); background: var(--accent); }
-  .proposal.active .sel::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: oklch(0.98 0.002 65); }
-  .proposal-img { height: 110px; position: relative; }
-  .proposal-img .cap { position: absolute; bottom: var(--space-2); left: var(--space-3); font-size: var(--text-xs); color: oklch(0.30 0.01 65 / 0.6); font-weight: 500; z-index: 1; }
-  .proposal-body { padding: var(--space-4); }
-  .proposal-body h4 { font-size: var(--text-sm); font-weight: 600; letter-spacing: -0.01em; margin-bottom: var(--space-2); }
-  .proposal-body p { font-size: var(--text-xs); color: var(--text-tertiary); line-height: 1.55; }
-  .proposal-tags { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
-  .ptag { font-size: 10px; padding: 2px var(--space-2); border-radius: 8px; background: var(--bg-elevated); color: var(--text-tertiary); font-family: var(--font-mono); }
+  .kw:hover { border-color: var(--border); color: var(--text-secondary); }
+  .kw.mood { color: var(--text-accent); border-color: var(--accent-border); background: var(--accent-muted); }
 
-  .asset-row { display: flex; gap: var(--space-3); }
-  .asset {
-    flex: 1; aspect-ratio: 4/3; border-radius: var(--radius-lg); border: 1px solid var(--border);
+  /* ── Proposal tabs — refined pill + underline style ── */
+  .proposal-tabs {
+    display: flex; align-items: center; gap: 0; flex: 1; min-width: 0;
+    padding-bottom: 2px; border-bottom: 1px solid var(--border-subtle);
+  }
+  .proposal-tab {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-xs); color: var(--text-tertiary); cursor: pointer;
+    transition: all 0.2s ease; white-space: nowrap; position: relative;
+    border-radius: var(--radius); margin-right: 2px;
+  }
+  .proposal-tab:hover { color: var(--text-secondary); background: var(--bg-hover); }
+  .proposal-tab.active {
+    color: var(--text-primary); background: var(--bg-elevated);
+    font-weight: 500;
+  }
+  .proposal-tab.active::after {
+    content: ''; position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 2px; border-radius: 1px; background: var(--accent);
+  }
+  .proposal-tab .tab-close {
+    width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 9px; opacity: 0; transition: all 0.15s ease;
+    color: var(--text-tertiary); flex-shrink: 0;
+  }
+  .proposal-tab:hover .tab-close { opacity: 0.6; }
+  .proposal-tab .tab-close:hover { opacity: 1; background: var(--bg-hover); color: var(--text-primary); }
+  .proposal-tab.active .tab-close { opacity: 0.5; }
+  .proposal-tab.active .tab-close:hover { opacity: 1; }
+  .proposal-tab-new {
+    width: 24px; height: 24px; border-radius: 50%; border: none;
+    background: transparent; color: var(--text-tertiary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    transition: all 0.15s ease; flex-shrink: 0; margin-left: var(--space-1);
+  }
+  .proposal-tab-new:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  /* ── Storyboard table ── */
+  .storyboard-table {
+    width: 100%; border-collapse: collapse; font-size: var(--text-xs);
+  }
+  .storyboard-table thead th {
+    text-align: left; padding: var(--space-2) var(--space-3);
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-tertiary); font-weight: 600;
+    border-bottom: 1px solid var(--border); background: var(--bg-elevated);
+    white-space: nowrap;
+  }
+  .storyboard-table thead th:first-child { border-radius: var(--radius) 0 0 0; }
+  .storyboard-table thead th:last-child { border-radius: 0 var(--radius) 0 0; }
+  .storyboard-table tbody td {
+    padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary); line-height: 1.5; vertical-align: top;
+  }
+  .storyboard-table tbody tr:last-child td { border-bottom: none; }
+  .storyboard-table tbody tr:hover td { background: var(--bg-elevated); }
+  .storyboard-table .col-time { width: 56px; font-family: var(--font-mono); color: var(--text-tertiary); }
+  .storyboard-table .col-structure { width: 64px; }
+  .storyboard-table .col-lyrics { width: 20%; }
+  .storyboard-table .col-visual { width: auto; }
+  .storyboard-table .col-scene { width: 15%; }
+  .storyboard-table .col-char { width: 14%; }
+
+  /* ── Single proposal detail ── */
+  .proposal-detail { display: flex; flex-direction: column; gap: var(--space-5); }
+  .proposal-detail-header {
+    display: flex; gap: var(--space-5); align-items: flex-start;
+  }
+  .proposal-hero {
+    width: 280px; height: 140px; flex-shrink: 0; border-radius: var(--radius-lg);
+    overflow: hidden; position: relative;
+  }
+  .proposal-hero .cap {
+    position: absolute; bottom: var(--space-2); left: var(--space-3);
+    font-size: var(--text-xs); color: oklch(0.50 0.006 265 / 0.7); font-weight: 500;
+  }
+  .proposal-detail-info { flex: 1; display: flex; flex-direction: column; gap: var(--space-3); }
+  .proposal-detail-info h3 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 600; }
+  .proposal-detail-info > p { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
+  .proposal-detail-tags { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .pdtag { font-size: var(--text-xs); padding: var(--space-1) var(--space-3); border-radius: var(--radius); background: var(--bg-elevated); color: var(--text-secondary); font-family: var(--font-mono); border: 1px solid var(--border-subtle); }
+
+  .proposal-sections { display: flex; flex-direction: column; gap: var(--space-5); }
+  .proposal-section { display: flex; flex-direction: column; gap: var(--space-2); }
+  .proposal-section h4 { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); font-weight: 600; }
+  .proposal-section p { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
+  .proposal-section .items { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .proposal-section .item {
+    font-size: var(--text-xs); padding: var(--space-1) var(--space-3); border-radius: var(--radius);
+    border: 1px solid var(--border-subtle); color: var(--text-secondary); background: var(--bg-elevated);
+  }
+
+  /* ── Visual assets region ── */
+  .visual-assets-header { display: flex; align-items: center; gap: 0; margin-bottom: var(--space-4); }
+  .asset-type-tabs { display: flex; gap: 0; }
+  .asset-type-tab {
+    padding: var(--space-1) var(--space-3); font-size: var(--text-xs); color: var(--text-tertiary);
+    cursor: pointer; transition: all 0.2s ease; border-radius: var(--radius);
+    font-weight: 400; position: relative;
+  }
+  .asset-type-tab:hover { color: var(--text-secondary); background: var(--bg-hover); }
+  .asset-type-tab.active {
+    color: var(--text-primary); background: var(--bg-elevated); font-weight: 500;
+  }
+  .asset-type-tab.active::after {
+    content: ''; position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 2px; border-radius: 1px; background: var(--accent);
+  }
+  .visual-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: var(--space-3); }
+  .asset-thumb {
+    aspect-ratio: 4/3; border-radius: var(--radius); border: 1px solid var(--border-subtle);
     overflow: hidden; display: flex; align-items: flex-end; transition: all 0.15s ease; cursor: pointer; position: relative;
+    background: var(--bg-elevated);
   }
-  .asset:hover { border-color: var(--text-tertiary); }
-  .asset .asset-label { padding: var(--space-3); font-size: var(--text-xs); color: oklch(0.30 0.01 65 / 0.7); font-weight: 500; background: linear-gradient(transparent, oklch(0.95 0.005 65 / 0.85)); width: 100%; }
-  .asset.add { border-style: dashed; align-items: center; justify-content: center; font-size: var(--text-xl); color: var(--text-tertiary); cursor: pointer; background: var(--bg-surface); }
-  .asset.add:hover { border-color: var(--accent); color: var(--accent); }
+  .asset-thumb:hover { border-color: var(--border); box-shadow: 0 2px 8px oklch(0 0 0 / 0.06); transform: translateY(-1px); }
+  .asset-thumb .asset-label { padding: var(--space-2); font-size: var(--text-xs); color: var(--text-secondary); font-weight: 500; background: linear-gradient(transparent, oklch(1 0 0 / 0.85)); width: 100%; }
+  .asset-thumb.add { border-style: dashed; align-items: center; justify-content: center; font-size: var(--text-xl); color: var(--text-tertiary); cursor: pointer; }
+  .asset-thumb.add:hover { border-color: var(--accent); color: var(--text-accent); }
 
-  .storyboard-section { display: flex; flex-direction: column; gap: var(--space-4); }
-  .timeline { display: flex; height: 36px; border-radius: var(--radius); overflow: hidden; gap: 2px; border: 1px solid var(--border); }
-  .tl-seg { display: flex; align-items: center; justify-content: center; font-size: 10px; color: oklch(0.40 0.01 65 / 0.7); cursor: pointer; transition: filter 0.15s ease; font-weight: 500; }
-  .tl-seg:hover { filter: brightness(0.9); }
-  .tl-times { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); margin-top: var(--space-2); }
-  .shot-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
-  .shot {
-    aspect-ratio: 16/10; border-radius: var(--radius); border: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: var(--space-2); cursor: pointer; transition: all 0.15s ease; position: relative;
-    overflow: hidden; background: var(--bg-surface);
+  /* Asset type badges — transparent pill on card corner */
+  .asset-badge {
+    position: absolute; top: 6px; right: 6px;
+    padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.02em;
+    background: oklch(1 0 0 / 0.15);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid oklch(1 0 0 / 0.25);
+    color: oklch(1 0 0 / 0.95);
+    text-shadow: 0 1px 3px oklch(0 0 0 / 0.3);
+    line-height: 1.4;
+    transition: all 0.15s ease;
   }
-  .shot:hover { border-color: var(--text-tertiary); }
-  .shot .shot-num { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
-  .shot .shot-type { font-size: var(--text-xs); color: var(--text-secondary); font-weight: 500; }
-  .shot.add-shot { border-style: dashed; color: var(--text-tertiary); font-size: var(--text-lg); }
-  .shot.add-shot:hover { border-color: var(--accent); color: var(--accent); }
+  .asset-thumb:hover .asset-badge {
+    background: oklch(1 0 0 / 0.22);
+    border-color: oklch(1 0 0 / 0.35);
+  }
+  .badge-分镜视频 { background: oklch(0.55 0.18 265 / 0.2); border-color: oklch(0.55 0.18 265 / 0.3); color: oklch(0.55 0.18 265 / 0.95); }
+  .badge-分镜图 { background: oklch(0.55 0.18 265 / 0.15); border-color: oklch(0.55 0.18 265 / 0.25); color: oklch(0.55 0.18 265 / 0.9); }
+  .badge-角色 { background: oklch(0.55 0.18 265 / 0.12); border-color: oklch(0.55 0.18 265 / 0.2); color: oklch(0.55 0.18 265 / 0.85); }
+  .badge-场景 { background: oklch(0.55 0.18 265 / 0.12); border-color: oklch(0.55 0.18 265 / 0.2); color: oklch(0.55 0.18 265 / 0.85); }
+  .badge-物品 { background: oklch(0.55 0.18 265 / 0.12); border-color: oklch(0.55 0.18 265 / 0.2); color: oklch(0.55 0.18 265 / 0.85); }
+  .badge-上传视频 { background: oklch(0 0 0 / 0.08); border-color: oklch(0 0 0 / 0.12); color: oklch(0 0 0 / 0.5); }
 
   /* Typing */
   .typing { display: flex; gap: 4px; padding: var(--space-2) 0; }
@@ -272,105 +624,257 @@
   .typing i:nth-child(3) { animation-delay: 0.4s; }
   @keyframes typeDot { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
 
-  /* ═══ Preview Modal ═══ */
+  /* ═══ Preview Modal — Editor ═══ */
   .preview-overlay {
-    position: fixed; inset: 0; background: oklch(0 0 0 / 0.5);
-    backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center;
+    position: fixed; inset: 0; background: oklch(0 0 0 / 0.35);
+    backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center;
     z-index: 200;
   }
   .preview-overlay.show { display: flex; }
 
   .preview-modal {
-    width: 860px; max-width: 95vw;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    animation: slideUp 0.25s ease-out;
-    box-shadow: 0 24px 64px oklch(0 0 0 / 0.15);
+    width: 95vw; height: 95vh; max-width: 95vw; max-height: 95vh;
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: var(--radius-xl); overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 32px 80px oklch(0 0 0 / 0.12);
+    display: flex; flex-direction: column;
   }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
   .preview-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: var(--space-4) var(--space-5);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
   }
-  .preview-header h3 { font-size: var(--text-sm); font-weight: 600; }
+  .preview-header h3 { font-family: var(--font-display); font-size: var(--text-md); font-weight: 600; }
   .preview-header .badge { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-tertiary); }
   .preview-header .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s ease infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   .preview-close {
-    width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent;
+    width: 28px; height: 28px; border-radius: var(--radius); border: none; background: transparent;
     color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center;
     justify-content: center; transition: all 0.15s ease; font-size: 16px;
   }
   .preview-close:hover { background: var(--bg-elevated); color: var(--text-primary); }
 
+  .preview-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+  .editor-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
   .preview-screen {
-    aspect-ratio: 16/9;
-    background: linear-gradient(160deg, oklch(0.90 0.06 55), oklch(0.85 0.04 65));
-    display: flex; align-items: center; justify-content: center;
+    flex: 1; min-height: 0;
+    background: linear-gradient(160deg, var(--bg-elevated), var(--bg-hover));
+    display: flex; align-items: center; justify-content: center; position: relative;
   }
   .preview-screen .play-circle {
-    width: 52px; height: 52px; border-radius: 50%; background: oklch(0.20 0.01 65 / 0.10);
+    width: 56px; height: 56px; border-radius: 50%; background: oklch(0.20 0.005 265 / 0.06);
     backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s ease; font-size: 18px; color: var(--text-primary);
+    cursor: pointer; transition: all 0.2s ease; font-size: 20px; color: var(--text-primary);
   }
-  .preview-screen .play-circle:hover { background: oklch(0.20 0.01 65 / 0.18); transform: scale(1.04); }
+  .preview-screen .play-circle:hover { background: oklch(0.20 0.005 265 / 0.10); transform: scale(1.06); }
 
-  .preview-bar {
-    padding: var(--space-4) var(--space-5); display: flex; align-items: center; gap: var(--space-4);
-    border-bottom: 1px solid var(--border);
+  .transport {
+    padding: var(--space-3) var(--space-5); display: flex; align-items: center; gap: var(--space-3);
+    border-top: 1px solid var(--border); flex-shrink: 0;
   }
   .play-btn {
-    width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--black);
-    color: oklch(0.98 0.002 65); cursor: pointer; display: flex; align-items: center;
+    width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--text-primary);
+    color: var(--bg); cursor: pointer; display: flex; align-items: center;
     justify-content: center; font-size: 14px; transition: opacity 0.15s ease; flex-shrink: 0;
   }
-  .play-btn:hover { opacity: 0.8; }
+  .play-btn:hover { opacity: 0.85; }
   .progress { flex: 1; height: 3px; background: var(--bg-elevated); border-radius: 2px; cursor: pointer; position: relative; }
   .progress .bar { height: 100%; width: 35%; background: var(--accent); border-radius: 2px; transition: width 0.2s ease; }
   .time { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); min-width: 72px; text-align: right; font-variant-numeric: tabular-nums; }
 
-  /* Tracks */
-  .tracks { padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
-  .tracks .section-label { margin-bottom: var(--space-3); }
-  .track-row { display: flex; align-items: center; gap: var(--space-3); }
-  .track-label { font-size: var(--text-xs); color: var(--text-tertiary); min-width: 48px; font-weight: 500; }
-  .track-video { flex: 1; display: flex; height: 28px; gap: 2px; }
-  .track-video div {
+  .timeline-area {
+    border-top: 1px solid var(--border);
+    padding: var(--space-4) var(--space-5) var(--space-4);
+    display: flex; flex-direction: column; gap: var(--space-4);
+    flex-shrink: 0; max-height: 220px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  .timeline-area::-webkit-scrollbar { width: 4px; }
+  .timeline-area::-webkit-scrollbar-track { background: transparent; }
+  .timeline-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .timeline-area::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+  .timeline-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2);
+  }
+  .timeline-header .section-label { margin-bottom: 0; }
+  .btn-add-subtitle {
+    display: flex; align-items: center; gap: var(--space-1);
+    padding: var(--space-1) var(--space-3); border-radius: 12px;
+    border: 1px solid var(--border-subtle); background: transparent;
+    color: var(--text-tertiary); font-size: var(--text-xs); font-family: var(--font-body);
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .btn-add-subtitle:hover { border-color: var(--accent); color: var(--text-accent); background: var(--accent-muted); }
+  .btn-add-subtitle svg { width: 12px; height: 12px; }
+
+  .tl-track { display: flex; align-items: center; gap: var(--space-3); }
+  .tl-track-label {
+    font-size: var(--text-xs); color: var(--text-tertiary); min-width: 40px;
+    font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .tl-track-content { flex: 1; min-height: 32px; display: flex; gap: 2px; border-radius: var(--radius); overflow: hidden; position: relative; }
+
+  .tl-clip {
     border-radius: 4px; display: flex; align-items: center; justify-content: center;
-    font-size: 9px; color: oklch(0.40 0.01 65);
+    font-size: 10px; font-weight: 500; cursor: grab; user-select: none;
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+    position: relative; overflow: hidden; white-space: nowrap;
   }
-  .track-audio {
-    flex: 1; height: 28px; border-radius: var(--radius); background: var(--bg-elevated);
-    border: 1px solid var(--border); display: flex; align-items: center; padding: 0 var(--space-3);
-    gap: 2px; overflow: hidden;
+  .tl-clip:active { cursor: grabbing; }
+  .tl-clip:hover { box-shadow: 0 0 0 2px var(--accent); z-index: 1; transform: scaleY(1.08); }
+  .tl-clip.dragging { opacity: 0.4; }
+  .tl-clip .clip-handle {
+    position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 12px; border-radius: 1.5px; background: oklch(0 0 0 / 0.15);
   }
-  .track-audio div { border-radius: 2px; background: oklch(0.70 0.01 65); }
-  .track-lyrics {
-    flex: 1; height: 28px; border-radius: var(--radius); background: var(--bg-elevated);
-    border: 1px solid var(--border); display: flex; align-items: center; padding: 0 var(--space-3); gap: var(--space-4);
+  .tl-track-video .tl-clip { height: 32px; color: var(--text-secondary); }
+  .tl-track-audio .tl-clip {
+    height: 28px; color: transparent; position: relative; overflow: hidden;
   }
-  .track-lyrics span { font-size: 10px; color: var(--text-tertiary); font-family: var(--font-mono); }
+  .tl-track-audio .tl-clip .clip-label {
+    position: relative; z-index: 2; font-size: 10px; font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .tl-track-audio .tl-clip .clip-wave {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    padding: 0 4px; overflow: hidden; opacity: 0.7;
+  }
+  .tl-track-audio .tl-clip .clip-wave svg { width: 100%; height: 24px; }
+  .tl-track-subtitle .tl-clip { height: 28px; color: var(--text-tertiary); font-family: var(--font-mono); }
+
+  .tl-wave { flex: 1; border-radius: 2px; }
+
+  .tl-times {
+    display: flex; justify-content: space-between; font-family: var(--font-mono);
+    font-size: 10px; color: var(--text-tertiary); margin-top: var(--space-1); padding-left: 43px;
+  }
+
+  .tl-add-track {
+    display: flex; align-items: center;
+    padding-left: 43px;
+  }
+  .tl-add-track-btn {
+    display: flex; align-items: center; gap: var(--space-2);
+    width: 100%; justify-content: center;
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius);
+    border: 1px dashed var(--border-subtle); background: transparent;
+    color: var(--text-tertiary); font-size: var(--text-xs); font-family: var(--font-body);
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .tl-add-track-btn:hover { border-color: var(--accent); color: var(--text-accent); background: var(--accent-muted); }
+  .tl-add-track-btn svg { width: 12px; height: 12px; }
+
+  .editor-assets {
+    width: 310px; min-width: 310px; border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden; background: var(--bg-elevated);
+  }
+  .editor-assets .panel-header {
+    padding: var(--space-4) var(--space-4) var(--space-3); border-bottom: 1px solid var(--border);
+  }
+  .editor-assets .panel-header h4 { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); font-weight: 600; margin-bottom: var(--space-1); }
+  .editor-assets .panel-header .sub { font-size: 11px; color: var(--text-tertiary); line-height: 1.4; }
+
+  /* Asset category tabs */
+  .asset-tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    padding: 0 var(--space-4); background: var(--bg-surface);
+  }
+  .asset-tab {
+    padding: var(--space-2) var(--space-3); font-size: var(--text-xs); color: var(--text-tertiary);
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s ease;
+    font-weight: 500; white-space: nowrap;
+  }
+  .asset-tab:hover { color: var(--text-secondary); }
+  .asset-tab.active { color: var(--text-accent); border-bottom-color: var(--accent); }
+
+  .asset-list { flex: 1; overflow-y: auto; padding: var(--space-3); display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); align-content: start; }
+
+  .asset-card {
+    aspect-ratio: 3/4; border-radius: var(--radius); border: 1px solid var(--border-subtle);
+    overflow: hidden; cursor: grab; position: relative; transition: all 0.15s ease; user-select: none;
+  }
+  .asset-card:active { cursor: grabbing; }
+  .asset-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px oklch(0 0 0 / 0.08); z-index: 5; }
+  .asset-card.dragging { opacity: 0.3; }
+  .asset-card .asset-name {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: var(--space-1) var(--space-2);
+    font-size: 9px; font-weight: 500; color: oklch(0.45 0.006 265 / 0.8);
+    background: linear-gradient(transparent, oklch(1 0 0 / 0.9));
+  }
+  .asset-card .asset-preview {
+    position: absolute; top: calc(100% + var(--space-2)); left: 50%; transform: translateX(-50%);
+    width: 240px; aspect-ratio: 16/9; border-radius: var(--radius-lg);
+    border: 1px solid var(--border); background: var(--bg-surface);
+    box-shadow: 0 8px 24px oklch(0 0 0 / 0.12); z-index: 50;
+    display: none; padding: var(--space-3);
+    flex-direction: column; gap: var(--space-2);
+  }
+  .asset-card:hover .asset-preview { display: flex; }
+  .asset-card .asset-preview .pv-screen {
+    flex: 1; border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .asset-card .asset-preview .pv-screen .pv-play {
+    position: absolute; bottom: var(--space-2); right: var(--space-2);
+    width: 24px; height: 24px; border-radius: 50%;
+    background: oklch(0 0 0 / 0.4); display: flex; align-items: center; justify-content: center;
+    color: oklch(1 0 0 / 0.9); font-size: 10px;
+  }
+  .asset-card .asset-preview .pv-info { display: flex; justify-content: space-between; align-items: center; }
+  .asset-card .asset-preview .pv-name { font-size: var(--text-xs); font-weight: 500; color: var(--text-primary); }
+  .asset-card .asset-preview .pv-meta { font-size: 9px; color: var(--text-tertiary); font-family: var(--font-mono); }
+
+  .asset-add {
+    aspect-ratio: 3/4; border-radius: var(--radius); border: 1.5px dashed var(--border-subtle);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s ease; gap: var(--space-1); background: transparent;
+  }
+  .asset-add:hover { border-color: var(--accent); color: var(--text-accent); background: var(--accent-muted); }
+  .asset-add svg { width: 16px; height: 16px; }
+  .asset-add span { font-size: 9px; color: var(--text-tertiary); }
+
+  .panel-footer {
+    padding: var(--space-3); border-top: 1px solid var(--border); display: flex; gap: var(--space-2); background: var(--bg-surface);
+  }
+  .btn-export {
+    flex: 1; padding: var(--space-2) var(--space-3); border-radius: var(--radius);
+    border: none; background: var(--text-primary); color: var(--bg);
+    font-size: var(--text-xs); font-weight: 500; font-family: var(--font-body);
+    cursor: pointer; transition: opacity 0.15s ease;
+  }
+  .btn-export:hover { opacity: 0.85; }
+  .btn-secondary {
+    flex: 1; padding: var(--space-2) var(--space-3); border-radius: var(--radius);
+    border: 1px solid var(--border-subtle); background: transparent;
+    color: var(--text-secondary); font-size: var(--text-xs); font-weight: 500;
+    font-family: var(--font-body); cursor: pointer; transition: all 0.15s ease;
+  }
+  .btn-secondary:hover { border-color: var(--border); color: var(--text-primary); }
 
   /* Upload overlay */
   .upload-overlay {
-    position: fixed; inset: 0; background: oklch(0 0 0 / 0.35); backdrop-filter: blur(4px);
+    position: fixed; inset: 0; background: oklch(0 0 0 / 0.25); backdrop-filter: blur(6px);
     display: none; align-items: center; justify-content: center; z-index: 100;
   }
   .upload-overlay.show { display: flex; }
   .upload-dialog {
     background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl);
-    padding: var(--space-6); width: 380px; max-width: 90vw; animation: slideUp 0.2s ease-out;
-    box-shadow: 0 12px 40px oklch(0 0 0 / 0.08);
+    padding: var(--space-6); width: 380px; max-width: 90vw; animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 16px 48px oklch(0 0 0 / 0.1);
   }
-  .upload-dialog h3 { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.02em; margin-bottom: var(--space-1); }
+  .upload-dialog h3 { font-family: var(--font-display); font-size: var(--text-md); font-weight: 600; margin-bottom: var(--space-1); }
   .upload-dialog .sub { font-size: var(--text-sm); color: var(--text-tertiary); margin-bottom: var(--space-5); }
   .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
   .upload-opt {
-    padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--border);
+    padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);
     background: var(--bg-elevated); cursor: pointer; transition: all 0.15s ease; text-align: center;
   }
   .upload-opt:hover { border-color: var(--accent); background: var(--accent-muted); }
@@ -444,13 +948,14 @@
 
   <!-- Canvas viewport -->
   <div class="canvas-viewport" id="viewport">
-    <!-- Preview trigger -->
+    <!-- Area navigation — top-left -->
+    <nav class="area-nav" id="areaNav"></nav>
+
     <button class="preview-trigger" id="previewTrigger" onclick="openPreview()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Preview
+      剪辑台
     </button>
 
-    <!-- Zoom controls -->
     <div class="zoom-controls">
       <button class="zoom-btn" onclick="zoom(-0.1)">−</button>
       <div class="zoom-label" id="zoomLabel">100%</div>
@@ -458,202 +963,408 @@
       <button class="zoom-btn" onclick="zoomReset()" title="Reset" style="font-size:12px">⊙</button>
     </div>
 
-    <!-- Canvas content -->
     <div class="canvas" id="canvas">
 
-      <!-- Music -->
-      <div>
-        <div class="section-label">音乐分析</div>
-        <div class="music-block">
-          <div class="album">
-            <span class="note">♪</span>
-            <span class="title">一片蓝</span>
-            <span class="dur">3:42</span>
+      <!-- Horizontal workspace: music (left) + MV projects (right) -->
+      <div class="creation-workspace">
+
+      <!-- Music creation area -->
+      <div class="creation-boundary music-creation">
+        <div class="music-creation-header">
+          <h4>生成音乐</h4>
+          <button class="btn-generate-music" onclick="generateMusic()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            生成新音乐
+          </button>
+        </div>
+        <div class="generated-music-list" id="musicList">
+          <div class="music-item" data-music="一片蓝">
+            <div class="music-icon">♪</div>
+            <div class="music-meta">
+              <div class="music-name">一片蓝</div>
+              <div class="music-tags">
+                <span class="music-tag">BPM 72</span>
+                <span class="music-tag">C 小调</span>
+                <span class="music-tag">流行 / 抒情</span>
+              </div>
+            </div>
+            <div class="music-actions">
+              <button class="btn-create-mv" onclick="createMV(this, '一片蓝')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                创作MV
+              </button>
+              <button class="btn-delete-music" onclick="deleteMusic(this)" title="删除">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
           </div>
+          <div class="music-item" data-music="晨光">
+            <div class="music-icon">♫</div>
+            <div class="music-meta">
+              <div class="music-name">晨光</div>
+              <div class="music-tags">
+                <span class="music-tag">BPM 96</span>
+                <span class="music-tag">G 大调</span>
+                <span class="music-tag">民谣 / 清新</span>
+              </div>
+            </div>
+            <div class="music-actions">
+              <button class="btn-create-mv" onclick="createMV(this, '晨光')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                创作MV
+              </button>
+              <button class="btn-delete-music" onclick="deleteMusic(this)" title="删除">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MV projects column -->
+      <div class="mv-projects-column">
+
+      <!-- MV creation project — tied to "一片蓝" -->
+      <div class="creation-boundary mv-project" data-song="一片蓝">
+        <div class="mv-project-header">
+          <div class="mv-project-title-row">
+            <span class="mv-project-title">一片蓝</span>
+            <button class="btn-delete-mv" onclick="deleteMV(this)" title="删除此MV项目">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <span class="mv-project-subtitle">基于「一片蓝」的 MV 创作</span>
+        </div>
+        <div class="canvas-regions">
+
+        <!-- Region 1: Music Content -->
+        <div class="region-wrapper music">
+          <div class="region-tab-bar">
+            <div class="region-tab active">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              音乐
+            </div>
+          </div>
+          <div class="region-tab-body">
+          <div class="music-content">
+            <div class="album" id="albumCover" onclick="toggleMusicPlay()">
+              <span class="note">♪</span>
+              <span class="title">一片蓝</span>
+              <span class="dur">3:42</span>
+              <div class="play-overlay">
+                <svg id="albumPlayIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+            </div>
+            <div class="music-info">
+              <div class="song-name">一片蓝</div>
+              <div class="meta-row">
+                <div class="meta-item">BPM <span>72</span></div>
+                <div class="meta-item">调性 <span>C 小调</span></div>
+              </div>
+              <div class="meta-row">
+                <div class="meta-item">拍号 <span>4/4</span></div>
+                <div class="meta-item">风格 <span>流行 / 抒情</span></div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- Region 2: Music Understanding -->
+        <div class="region-wrapper understanding">
+          <div class="region-tab-bar">
+            <div class="region-tab active">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              音乐理解
+            </div>
+          </div>
+          <div class="region-tab-body">
           <div class="analysis-body">
-            <dl class="meta-grid">
-              <div class="meta"><dt>BPM</dt><dd>72</dd></div>
-              <div class="meta"><dt>调性</dt><dd>C 小调</dd></div>
-              <div class="meta"><dt>拍号</dt><dd>4/4</dd></div>
-              <div class="meta"><dt>风格</dt><dd>流行 / 抒情</dd></div>
-            </dl>
             <div class="curve-section">
               <h3>情绪曲线</h3>
-              <svg class="curve-svg" viewBox="0 0 400 64">
+              <svg class="curve-svg" viewBox="0 0 400 56">
                 <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:oklch(0.62 0.20 55);stop-opacity:0.5"/>
-                  <stop offset="100%" style="stop-color:oklch(0.20 0.02 65);stop-opacity:0.6"/>
+                  <stop offset="0%" style="stop-color:oklch(0.55 0.18 265);stop-opacity:0.5"/>
+                  <stop offset="100%" style="stop-color:oklch(0.55 0.18 265);stop-opacity:0.15"/>
                 </linearGradient></defs>
-                <path d="M 0 50 Q 40 46 80 40 T 160 34 Q 200 24 240 10 T 320 16 Q 360 22 400 6"
+                <path d="M 0 46 Q 40 42 80 36 T 160 30 Q 200 20 240 6 T 320 12 Q 360 18 400 4"
                       fill="none" stroke="url(#cg)" stroke-width="2" stroke-linecap="round"/>
-                <path d="M 0 50 Q 40 46 80 40 T 160 34 Q 200 24 240 10 T 320 16 Q 360 22 400 6 L 400 64 L 0 64 Z"
-                      fill="url(#cg)" opacity="0.08"/>
-                <text x="10" y="60" fill="oklch(0.70 0.01 65)" font-size="9">前奏</text>
-                <text x="90" y="60" fill="oklch(0.70 0.01 65)" font-size="9">主歌</text>
-                <text x="170" y="60" fill="oklch(0.70 0.01 65)" font-size="9">副歌</text>
-                <text x="250" y="60" fill="oklch(0.70 0.01 65)" font-size="9">间奏</text>
-                <text x="330" y="60" fill="oklch(0.70 0.01 65)" font-size="9">尾奏</text>
+                <path d="M 0 46 Q 40 42 80 36 T 160 30 Q 200 20 240 6 T 320 12 Q 360 18 400 4 L 400 56 L 0 56 Z"
+                      fill="url(#cg)" opacity="0.06"/>
+                <text x="10" y="52" fill="oklch(0.62 0.005 265)" font-size="9">前奏</text>
+                <text x="90" y="52" fill="oklch(0.62 0.005 265)" font-size="9">主歌</text>
+                <text x="170" y="52" fill="oklch(0.62 0.005 265)" font-size="9">副歌</text>
+                <text x="250" y="52" fill="oklch(0.62 0.005 265)" font-size="9">间奏</text>
+                <text x="330" y="52" fill="oklch(0.62 0.005 265)" font-size="9">尾奏</text>
               </svg>
             </div>
             <div class="keywords">
               <span class="kw mood">压抑</span><span class="kw mood">释放</span>
               <span class="kw mood">孤独</span><span class="kw mood">渴望</span>
-              <span class="kw visual">深蓝</span><span class="kw visual">雨夜</span>
-              <span class="kw visual">城市灯火</span><span class="kw visual">窗边</span>
+              <span class="kw">深蓝</span><span class="kw">雨夜</span>
+              <span class="kw">城市灯火</span><span class="kw">窗边</span>
             </div>
+          </div>
           </div>
         </div>
-      </div>
 
-      <div class="divider"></div>
-
-      <!-- Proposals -->
-      <div>
-        <div class="section-label">创意方案</div>
-        <div class="proposal-grid">
-          <div class="proposal active" onclick="pick(this)">
-            <div class="sel"></div>
-            <div class="proposal-img" style="background: linear-gradient(160deg, oklch(0.90 0.04 265), oklch(0.88 0.06 265));">
-              <span class="cap">霓虹 · 都市夜景</span>
+        <!-- Region 3: Creative Proposals (single detail view with browser-tab style switching) -->
+        <div class="region-wrapper proposals">
+          <div class="region-tab-bar">
+            <div class="region-tab active">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              创意方案
             </div>
-            <div class="proposal-body">
-              <h4>方案A「都市夜行」</h4>
-              <p>霓虹色调 + 城市夜景 + 慢镜头。雨后的街头，霓虹灯在水洼中倒映。</p>
-              <div class="proposal-tags"><span class="ptag">霓虹色调</span><span class="ptag">城市夜景</span><span class="ptag">慢镜头</span></div>
+            <div class="proposal-tabs" id="proposalTabs">
+              <div class="proposal-tab active" data-idx="0" onclick="switchProposal(0)">
+                <span>都市夜行</span>
+                <span class="tab-close" onclick="event.stopPropagation();closeProposal(0)">✕</span>
+              </div>
+              <div class="proposal-tab" data-idx="1" onclick="switchProposal(1)">
+                <span>余温</span>
+                <span class="tab-close" onclick="event.stopPropagation();closeProposal(1)">✕</span>
+              </div>
+              <div class="proposal-tab" data-idx="2" onclick="switchProposal(2)">
+                <span>深海</span>
+                <span class="tab-close" onclick="event.stopPropagation();closeProposal(2)">✕</span>
+              </div>
+              <button class="proposal-tab-new" onclick="newProposal()" title="新方案">+</button>
             </div>
           </div>
-          <div class="proposal" onclick="pick(this)">
-            <div class="sel"></div>
-            <div class="proposal-img" style="background: linear-gradient(160deg, oklch(0.90 0.06 55), oklch(0.88 0.08 65));">
-              <span class="cap">暖色 · 日落光晕</span>
-            </div>
-            <div class="proposal-body">
-              <h4>方案B「余温」</h4>
-              <p>日落暖色调，逆光剪影 + 光晕。从窗边特写拉开到城市全景。</p>
-              <div class="proposal-tags"><span class="ptag">日落暖色</span><span class="ptag">剪影</span><span class="ptag">逆光</span></div>
-            </div>
+          <div class="region-tab-body">
+          <div class="proposal-detail" id="proposalDetail">
+            <!-- Filled by JS -->
           </div>
-          <div class="proposal" onclick="pick(this)">
-            <div class="sel"></div>
-            <div class="proposal-img" style="background: linear-gradient(160deg, oklch(0.92 0.03 220), oklch(0.88 0.04 210));">
-              <span class="cap">冷色 · 深海蓝调</span>
-            </div>
-            <div class="proposal-body">
-              <h4>方案C「深海」</h4>
-              <p>深海蓝调 + 水下摄影感。压抑对应深海，释放对应浮出水面。</p>
-              <div class="proposal-tags"><span class="ptag">深海蓝</span><span class="ptag">水下摄影</span><span class="ptag">水面切换</span></div>
-            </div>
           </div>
         </div>
-      </div>
 
-      <div class="divider"></div>
-
-      <!-- Assets -->
-      <div>
-        <div class="section-label">视觉资产</div>
-        <div class="asset-row">
-          <div class="asset" style="background: linear-gradient(160deg, oklch(0.90 0.04 265), oklch(0.86 0.03 265));">
-            <span class="asset-label">雨夜街道</span>
+        <!-- Region 4: Visual Assets (only assets, no editing timeline) -->
+        <div class="region-wrapper assets">
+          <div class="region-tab-bar">
+            <div class="region-tab active">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              视觉资产
+            </div>
+            <div class="asset-type-tabs" id="assetTypeTabs">
+              <div class="asset-type-tab active" data-type="image" onclick="switchAssetType(this)">图片</div>
+              <div class="asset-type-tab" data-type="video" onclick="switchAssetType(this)">视频</div>
+            </div>
           </div>
-          <div class="asset" style="background: linear-gradient(160deg, oklch(0.88 0.06 265), oklch(0.84 0.05 265));">
-            <span class="asset-label">霓虹灯</span>
+          <div class="region-tab-body">
+          <div class="visual-assets" id="visualAssets">
+            <!-- Filled by JS -->
           </div>
-          <div class="asset" style="background: linear-gradient(160deg, oklch(0.88 0.03 230), oklch(0.84 0.04 265));">
-            <span class="asset-label">车窗倒影</span>
-          </div>
-          <div class="asset add" onclick="toggleUpload()">+</div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Storyboard -->
-      <div>
-        <div class="section-label">分镜</div>
-        <div class="storyboard-section">
-          <div>
-            <div class="timeline">
-              <div class="tl-seg" style="flex:1; background: oklch(0.90 0.03 265);">前奏</div>
-              <div class="tl-seg" style="flex:2; background: oklch(0.88 0.05 265);">主歌 1</div>
-              <div class="tl-seg" style="flex:2; background: oklch(0.82 0.08 265);">副歌</div>
-              <div class="tl-seg" style="flex:1; background: oklch(0.92 0.02 265);">间奏</div>
-              <div class="tl-seg" style="flex:2; background: oklch(0.88 0.05 265);">主歌 2</div>
-              <div class="tl-seg" style="flex:2; background: oklch(0.82 0.08 265);">副歌</div>
-              <div class="tl-seg" style="flex:1; background: oklch(0.94 0.01 265);">尾奏</div>
-            </div>
-            <div class="tl-times"><span>0:00</span><span>1:15</span><span>2:30</span><span>3:42</span></div>
-          </div>
-          <div class="shot-row">
-            <div class="shot" style="background: linear-gradient(160deg, oklch(0.90 0.03 265), oklch(0.86 0.04 265));">
-              <span class="shot-num">#1</span><span class="shot-type">空镜</span>
-            </div>
-            <div class="shot" style="background: linear-gradient(160deg, oklch(0.88 0.04 265), oklch(0.84 0.05 265));">
-              <span class="shot-num">#2</span><span class="shot-type">中景</span>
-            </div>
-            <div class="shot" style="background: linear-gradient(160deg, oklch(0.86 0.05 265), oklch(0.82 0.06 265));">
-              <span class="shot-num">#3</span><span class="shot-type">特写</span>
-            </div>
-            <div class="shot" style="background: linear-gradient(160deg, oklch(0.84 0.05 265), oklch(0.80 0.07 265));">
-              <span class="shot-num">#4</span><span class="shot-type">全景</span>
-            </div>
-            <div class="shot add-shot">+</div>
           </div>
         </div>
+
       </div>
+      </div>
+
+      </div><!-- end mv-projects-column -->
+      </div><!-- end creation-workspace -->
 
     </div>
   </div>
 </div>
 
-<!-- Preview Modal -->
+<!-- Preview Modal — Editor -->
 <div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
   <div class="preview-modal">
     <div class="preview-header">
       <div style="display:flex;align-items:center;gap:var(--space-4)">
-        <h3>Preview</h3>
-        <div class="badge"><span class="dot"></span>方案A「都市夜行」</div>
+        <h3>剪辑台</h3>
       </div>
       <button class="preview-close" onclick="closePreview()">✕</button>
     </div>
-    <div class="preview-screen">
-      <div class="play-circle" onclick="togglePlay(this)">▶</div>
-    </div>
-    <div class="preview-bar">
-      <button class="play-btn" onclick="togglePlayBtn(this)">▶</button>
-      <div class="progress" onclick="seek(event, this)"><div class="bar" id="prog"></div></div>
-      <span class="time">1:18 / 3:42</span>
-    </div>
-    <div class="tracks">
-      <div class="section-label">轨道编辑</div>
-      <div class="track-row">
-        <span class="track-label">视频</span>
-        <div class="track-video">
-          <div style="flex:1; background:oklch(0.90 0.03 265);">前奏</div>
-          <div style="flex:2; background:oklch(0.86 0.05 265);">主歌 1</div>
-          <div style="flex:2; background:oklch(0.80 0.08 265);">副歌</div>
-          <div style="flex:1; background:oklch(0.92 0.02 265);">间奏</div>
-          <div style="flex:2; background:oklch(0.86 0.05 265);">主歌 2</div>
-          <div style="flex:2; background:oklch(0.80 0.08 265);">副歌</div>
-          <div style="flex:1; background:oklch(0.94 0.01 265);">尾奏</div>
+
+    <div class="preview-body">
+      <div class="editor-main">
+        <div class="preview-screen">
+          <div class="play-circle" onclick="togglePlay(this)">▶</div>
+        </div>
+
+        <div class="transport">
+          <button class="play-btn" onclick="togglePlayBtn(this)">▶</button>
+          <div class="progress" onclick="seek(event, this)"><div class="bar" id="prog"></div></div>
+          <span class="time">1:18 / 3:42</span>
+        </div>
+
+        <div class="timeline-area">
+          <div class="timeline-header">
+            <span class="section-label">时间线</span>
+            <button class="btn-add-subtitle" onclick="addSubtitleTrack()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              添加歌词字幕
+            </button>
+          </div>
+
+          <div class="tl-track">
+            <span class="tl-track-label">视频</span>
+            <div class="tl-track-content tl-track-video" id="videoTrack">
+              <div class="tl-clip" draggable="true" data-name="前奏" style="flex:1; background: oklch(0.92 0.01 265);"><span class="clip-handle"></span>前奏 0:00</div>
+              <div class="tl-clip" draggable="true" data-name="主歌 1" style="flex:2; background: oklch(0.90 0.015 265);"><span class="clip-handle"></span>主歌 1</div>
+              <div class="tl-clip" draggable="true" data-name="副歌" style="flex:2; background: oklch(0.88 0.02 265);"><span class="clip-handle"></span>副歌</div>
+              <div class="tl-clip" draggable="true" data-name="间奏" style="flex:1; background: oklch(0.93 0.008 265);"><span class="clip-handle"></span>间奏</div>
+              <div class="tl-clip" draggable="true" data-name="主歌 2" style="flex:2; background: oklch(0.90 0.015 265);"><span class="clip-handle"></span>主歌 2</div>
+              <div class="tl-clip" draggable="true" data-name="副歌" style="flex:2; background: oklch(0.88 0.02 265);"><span class="clip-handle"></span>副歌</div>
+              <div class="tl-clip" draggable="true" data-name="尾奏" style="flex:1; background: oklch(0.94 0.005 265);"><span class="clip-handle"></span>尾奏 3:42</div>
+            </div>
+          </div>
+
+          <div class="tl-track">
+            <span class="tl-track-label">音频</span>
+            <div class="tl-track-content tl-track-audio" id="audioTrack">
+              <div class="tl-clip" draggable="true" data-name="前奏" style="flex:1; background: oklch(0.92 0.01 265);"><span class="clip-handle"></span><span class="clip-label">前奏</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q15 2 30 12 Q45 22 60 12 Q75 2 90 12 Q105 22 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.5)" stroke-width="1"/></svg></div></div>
+              <div class="tl-clip" draggable="true" data-name="主歌" style="flex:2; background: oklch(0.90 0.015 265);"><span class="clip-handle"></span><span class="clip-label">主歌</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q15 4 30 12 Q45 20 60 12 Q75 4 90 12 Q105 20 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.45)" stroke-width="1"/></svg></div></div>
+              <div class="tl-clip" draggable="true" data-name="副歌" style="flex:2; background: oklch(0.88 0.02 265);"><span class="clip-handle"></span><span class="clip-label">副歌</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q10 0 20 12 Q30 24 40 12 Q50 0 60 12 Q70 24 80 12 Q90 0 100 12 Q110 24 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.4)" stroke-width="1"/></svg></div></div>
+              <div class="tl-clip" draggable="true" data-name="间奏" style="flex:1; background: oklch(0.93 0.008 265);"><span class="clip-handle"></span><span class="clip-label">间奏</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q15 6 30 12 Q45 18 60 12 Q75 6 90 12 Q105 18 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.5)" stroke-width="1"/></svg></div></div>
+              <div class="tl-clip" draggable="true" data-name="主歌 2" style="flex:2; background: oklch(0.90 0.015 265);"><span class="clip-handle"></span><span class="clip-label">主歌 2</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q15 4 30 12 Q45 20 60 12 Q75 4 90 12 Q105 20 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.45)" stroke-width="1"/></svg></div></div>
+              <div class="tl-clip" draggable="true" data-name="副歌" style="flex:2; background: oklch(0.88 0.02 265);"><span class="clip-handle"></span><span class="clip-label">副歌</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q10 0 20 12 Q30 24 40 12 Q50 0 60 12 Q70 24 80 12 Q90 0 100 12 Q110 24 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.4)" stroke-width="1"/></svg></div></div>
+              <div class="tl-clip" draggable="true" data-name="尾奏" style="flex:1; background: oklch(0.94 0.005 265);"><span class="clip-handle"></span><span class="clip-label">尾奏</span><div class="clip-wave"><svg viewBox="0 0 120 24" preserveAspectRatio="none"><path d="M0 12 Q20 8 40 12 Q60 16 80 12 Q100 8 120 12" fill="none" stroke="oklch(0.72 0.01 265 / 0.5)" stroke-width="1"/></svg></div></div>
+            </div>
+          </div>
+
+          <div id="subtitleTracks"></div>
+
+          <div class="tl-add-track">
+            <button class="tl-add-track-btn" onclick="addTrack()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              新增轨道
+            </button>
+          </div>
+
+          <div class="tl-times"><span>0:00</span><span>0:45</span><span>1:30</span><span>2:15</span><span>3:00</span><span>3:42</span></div>
         </div>
       </div>
-      <div class="track-row">
-        <span class="track-label">音频</span>
-        <div class="track-audio">
-          <div style="flex:1; height:12px; opacity:0.5"></div>
-          <div style="flex:2; height:14px; opacity:0.6"></div>
-          <div style="flex:2; height:20px; opacity:0.8"></div>
-          <div style="flex:1; height:10px; opacity:0.4"></div>
-          <div style="flex:2; height:14px; opacity:0.6"></div>
-          <div style="flex:2; height:20px; opacity:0.8"></div>
-          <div style="flex:1; height:8px; opacity:0.3"></div>
+
+      <div class="editor-assets">
+        <div class="panel-header">
+          <h4>素材库</h4>
+          <div class="sub">拖拽到时间线中添加到视频</div>
         </div>
-      </div>
-      <div class="track-row">
-        <span class="track-label">歌词</span>
-        <div class="track-lyrics">
-          <span>前奏 0:00</span><span>主歌 0:15</span><span>副歌 1:15</span><span>间奏 1:50</span><span>尾奏 3:20</span>
+        <div class="asset-tabs" id="assetTabs">
+          <div class="asset-tab active" data-tab="video" onclick="switchTab(this)">视频</div>
+          <div class="asset-tab" data-tab="audio" onclick="switchTab(this)">音频</div>
+          <div class="asset-tab" data-tab="image" onclick="switchTab(this)">图片</div>
+        </div>
+        <div class="asset-list" id="assetList">
+          <!-- Video assets -->
+          <div class="asset-card" draggable="true" data-asset="雨夜街道" data-type="video" style="background: linear-gradient(160deg, oklch(0.92 0.01 265), oklch(0.89 0.015 265));">
+            <span class="asset-name">雨夜街道</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.92 0.01 265), oklch(0.89 0.015 265));">
+                <span class="pv-play">▶</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">雨夜街道</span><span class="pv-meta">1080p · 0:08</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="霓虹灯" data-type="video" style="background: linear-gradient(160deg, oklch(0.90 0.02 265), oklch(0.87 0.03 265));">
+            <span class="asset-name">霓虹灯</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.90 0.02 265), oklch(0.87 0.03 265));">
+                <span class="pv-play">▶</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">霓虹灯</span><span class="pv-meta">1080p · 0:05</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="车窗倒影" data-type="video" style="background: linear-gradient(160deg, oklch(0.91 0.008 230), oklch(0.88 0.01 265));">
+            <span class="asset-name">车窗倒影</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.91 0.008 230), oklch(0.88 0.01 265));">
+                <span class="pv-play">▶</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">车窗倒影</span><span class="pv-meta">1080p · 0:06</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="城市天际线" data-type="video" style="background: linear-gradient(160deg, oklch(0.90 0.01 265), oklch(0.87 0.02 265));">
+            <span class="asset-name">城市天际线</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.90 0.01 265), oklch(0.87 0.02 265));">
+                <span class="pv-play">▶</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">城市天际线</span><span class="pv-meta">4K · 0:12</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="雨滴特写" data-type="video" style="background: linear-gradient(160deg, oklch(0.91 0.008 265), oklch(0.88 0.012 265));">
+            <span class="asset-name">雨滴特写</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.91 0.008 265), oklch(0.88 0.012 265));">
+                <span class="pv-play">▶</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">雨滴特写</span><span class="pv-meta">1080p · 0:04</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="街头行人" data-type="video" style="background: linear-gradient(160deg, oklch(0.90 0.012 265), oklch(0.87 0.018 265));">
+            <span class="asset-name">街头行人</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.90 0.012 265), oklch(0.87 0.018 265));">
+                <span class="pv-play">▶</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">街头行人</span><span class="pv-meta">1080p · 0:07</span></div>
+            </div>
+          </div>
+          <!-- Audio assets (hidden by default) -->
+          <div class="asset-card" draggable="true" data-asset="钢琴前奏" data-type="audio" style="display:none; background: linear-gradient(160deg, oklch(0.92 0.02 70), oklch(0.89 0.03 65));">
+            <span class="asset-name">钢琴前奏</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.92 0.02 70), oklch(0.89 0.03 65));">
+                <span class="pv-play">♪</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">钢琴前奏</span><span class="pv-meta">WAV · 0:15</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="环境雨声" data-type="audio" style="display:none; background: linear-gradient(160deg, oklch(0.91 0.01 265), oklch(0.88 0.015 265));">
+            <span class="asset-name">环境雨声</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.91 0.01 265), oklch(0.88 0.015 265));">
+                <span class="pv-play">♪</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">环境雨声</span><span class="pv-meta">WAV · 0:30</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="城市白噪音" data-type="audio" style="display:none; background: linear-gradient(160deg, oklch(0.90 0.008 265), oklch(0.87 0.012 265));">
+            <span class="asset-name">城市白噪音</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.90 0.008 265), oklch(0.87 0.012 265));">
+                <span class="pv-play">♪</span>
+              </div>
+              <div class="pv-info"><span class="pv-name">城市白噪音</span><span class="pv-meta">WAV · 0:20</span></div>
+            </div>
+          </div>
+          <!-- Image assets (hidden by default) -->
+          <div class="asset-card" draggable="true" data-asset="参考构图" data-type="image" style="display:none; background: linear-gradient(160deg, oklch(0.92 0.015 265), oklch(0.89 0.02 265));">
+            <span class="asset-name">参考构图</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.92 0.015 265), oklch(0.89 0.02 265));">
+              </div>
+              <div class="pv-info"><span class="pv-name">参考构图</span><span class="pv-meta">PNG · 1920×1080</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="色调参考" data-type="image" style="display:none; background: linear-gradient(160deg, oklch(0.90 0.03 70), oklch(0.87 0.04 65));">
+            <span class="asset-name">色调参考</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.90 0.03 70), oklch(0.87 0.04 65));">
+              </div>
+              <div class="pv-info"><span class="pv-name">色调参考</span><span class="pv-meta">PNG · 2048×1152</span></div>
+            </div>
+          </div>
+          <div class="asset-card" draggable="true" data-asset="情绪板" data-type="image" style="display:none; background: linear-gradient(160deg, oklch(0.91 0.01 220), oklch(0.88 0.015 210));">
+            <span class="asset-name">情绪板</span>
+            <div class="asset-preview">
+              <div class="pv-screen" style="background: linear-gradient(160deg, oklch(0.91 0.01 220), oklch(0.88 0.015 210));">
+              </div>
+              <div class="pv-info"><span class="pv-name">情绪板</span><span class="pv-meta">PNG · 2560×1440</span></div>
+            </div>
+          </div>
+          <!-- Add button (always visible) -->
+          <div class="asset-add" onclick="openEditorUpload()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>上传素材</span>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <button class="btn-secondary" onclick="closePreview()">返回</button>
+          <button class="btn-export" onclick="doExport()">导出成片</button>
         </div>
       </div>
     </div>
@@ -664,7 +1375,7 @@
 <div class="upload-overlay" id="uploadOverlay" onclick="if(event.target===this)toggleUpload()">
   <div class="upload-dialog">
     <h3>上传参考</h3>
-    <p class="sub">上传图片、视频或音频作为 MV 参考</p>
+    <p class="sub" id="uploadSub">上传图片、视频或音频作为 MV 参考</p>
     <div class="upload-grid">
       <div class="upload-opt" onclick="doUpload('图片')"><div class="icon">🖼</div><div class="lbl">图片</div><div class="desc">风格参考 / 角色 / 场景</div></div>
       <div class="upload-opt" onclick="doUpload('视频')"><div class="icon">🎬</div><div class="lbl">视频</div><div class="desc">运镜 / 转场 / 节奏参考</div></div>
@@ -675,6 +1386,455 @@
 </div>
 
 <script>
+// ═══ Proposal data ═══
+const proposals = [
+  {
+    name: '都市夜行',
+    gradient: 'linear-gradient(160deg, oklch(0.88 0.015 265), oklch(0.85 0.02 265))',
+    cap: '霓虹 · 都市夜景',
+    desc: '霓虹色调 + 城市夜景 + 慢镜头。雨后的街头，霓虹灯在水洼中倒映，孤独的行人在光影间穿梭。整体色调偏冷蓝紫，用霓虹灯的红绿作为点缀色。',
+    tags: ['霓虹色调', '城市夜景', '慢镜头', '雨夜'],
+    storyboard: [
+      { time: '0:00', structure: 'Intro', lyrics: '（前奏）', visual: '雨夜城市航拍，蓝紫色调，云层流动', scene: '城市天际线', chars: '—' },
+      { time: '0:15', structure: 'Verse', lyrics: '窗外的雨 还没停', visual: '主角坐在窗边，看窗外的雨，玻璃上的水珠滑落', scene: '窗边房间', chars: '主角' },
+      { time: '0:45', structure: 'Verse', lyrics: '霓虹灯在 水洼里醒着', visual: '走上街头，霓虹灯倒映在水洼中，慢镜头', scene: '霓虹街道', chars: '主角、行人' },
+      { time: '1:15', structure: 'Chorus', lyrics: '我在这片蓝里 找你', visual: '雨滴落下，霓虹色在水面散开，慢镜头特写', scene: '街道水洼', chars: '主角' },
+      { time: '1:50', structure: 'Bridge', lyrics: '（间奏）', visual: '地铁车厢内，空无一人，灯光忽明忽暗', scene: '地铁站', chars: '—' },
+      { time: '2:30', structure: 'Chorus', lyrics: '我在这片蓝里 等你', visual: '天桥上，主角仰望城市灯火，远景拉远', scene: '天桥', chars: '主角' },
+      { time: '3:20', structure: 'Outro', lyrics: '（尾奏）', visual: '天微亮，雨停，城市醒来，第一缕阳光', scene: '城市全景', chars: '—' },
+    ],
+    style: '冷蓝紫主色调，霓虹红绿点缀。低对比度，高颗粒感。王家卫式手持摄影 + 慢镜头。浅景深突出主体，背景虚化为光斑。',
+    characters: ['主角（独行者）', '街头行人（群演）', '出租车司机'],
+    scenes: ['雨夜城市天际线', '窗边房间', '霓虹街道', '地铁站', '天桥'],
+    items: ['雨伞', '霓虹灯牌', '水洼', '车窗', '地铁车厢', '手机屏幕'],
+    assets: {
+      image: [
+        { name: '主角设定', type: '角色', bg: 'oklch(0.92 0.01 265), oklch(0.89 0.015 265)' },
+        { name: '霓虹街道', type: '场景', bg: 'oklch(0.90 0.015 265), oklch(0.87 0.02 265)' },
+        { name: '地铁站台', type: '场景', bg: 'oklch(0.88 0.01 265), oklch(0.85 0.015 265)' },
+        { name: '色调参考', type: '物品', bg: 'oklch(0.91 0.01 240), oklch(0.88 0.012 240)' },
+        { name: '情绪板', type: '分镜图', bg: 'oklch(0.91 0.01 220), oklch(0.88 0.015 210)' },
+      ],
+      video: [
+        { name: '雨夜航拍', type: '分镜视频', bg: 'oklch(0.92 0.01 265), oklch(0.89 0.015 265)' },
+        { name: '水洼倒影', type: '分镜视频', bg: 'oklch(0.90 0.012 265), oklch(0.87 0.018 265)' },
+        { name: '霓虹闪烁', type: '分镜视频', bg: 'oklch(0.91 0.008 265), oklch(0.88 0.012 265)' },
+        { name: '地铁驶入', type: '上传视频', bg: 'oklch(0.90 0.01 265), oklch(0.87 0.02 265)' },
+      ],
+    }
+  },
+  {
+    name: '余温',
+    gradient: 'linear-gradient(160deg, oklch(0.90 0.04 70), oklch(0.87 0.06 65))',
+    cap: '暖色 · 日落光晕',
+    desc: '日落暖色调，逆光剪影 + 光晕。从窗边特写拉开到城市全景。金色的光线贯穿整首歌，从温暖到渐渐消逝。',
+    tags: ['日落暖色', '剪影', '逆光', '金色光晕'],
+    storyboard: [
+      { time: '0:00', structure: 'Intro', lyrics: '（前奏）', visual: '金色日落航拍，城市沐浴在暖光中', scene: '城市全景', chars: '—' },
+      { time: '0:15', structure: 'Verse', lyrics: '夕阳把你的影子 拉得好长', visual: '窗边逆光剪影，光晕弥漫，窗帘被风吹起', scene: '窗边房间', chars: '主角A' },
+      { time: '0:45', structure: 'Verse', lyrics: '我们在天台 不说话', visual: '天台，两个人并肩看日落，金色光线洒在脸上', scene: '日落天台', chars: '主角A、B' },
+      { time: '1:15', structure: 'Chorus', lyrics: '余温还在 你已经不在', visual: '金色麦田/草地，风吹过头发，逆光拍摄', scene: '金色草地', chars: '主角A' },
+      { time: '1:50', structure: 'Bridge', lyrics: '（间奏）', visual: '太阳沉入地平线，最后一缕光线', scene: '海边', chars: '—' },
+      { time: '2:30', structure: 'Chorus', lyrics: '余温散尽 城市亮起灯火', visual: '夜幕降临，城市灯火次第亮起，航拍拉远', scene: '城市全景', chars: '—' },
+      { time: '3:20', structure: 'Outro', lyrics: '（尾奏）', visual: '空荡的天台，只剩一杯冷掉的咖啡', scene: '日落天台', chars: '—' },
+    ],
+    style: '暖金色调为主，逆光拍摄制造光晕和剪影效果。大量使用镜头光晕（lens flare），低角度拍摄捕捉日落。柔焦处理营造梦幻感。',
+    characters: ['主角A', '主角B', '天台上看日落的人们'],
+    scenes: ['日落天台', '窗边房间', '金色草地', '城市全景', '海边'],
+    items: ['窗框', '飘动的窗帘', '金色光线', '剪影轮廓', '落日'],
+    assets: {
+      image: [
+        { name: '主角A设定', type: '角色', bg: 'oklch(0.93 0.02 70), oklch(0.90 0.03 70)' },
+        { name: '日落天台', type: '场景', bg: 'oklch(0.92 0.03 65), oklch(0.89 0.04 65)' },
+        { name: '窗框剪影', type: '场景', bg: 'oklch(0.90 0.02 70), oklch(0.87 0.03 70)' },
+        { name: '暖色调板', type: '物品', bg: 'oklch(0.94 0.02 75), oklch(0.91 0.03 75)' },
+        { name: '光晕参考', type: '分镜图', bg: 'oklch(0.93 0.015 70), oklch(0.90 0.02 70)' },
+      ],
+      video: [
+        { name: '日落航拍', type: '分镜视频', bg: 'oklch(0.92 0.02 70), oklch(0.89 0.03 70)' },
+        { name: '窗帘飘动', type: '分镜视频', bg: 'oklch(0.93 0.015 65), oklch(0.90 0.025 65)' },
+        { name: '海边日落', type: '上传视频', bg: 'oklch(0.91 0.025 70), oklch(0.88 0.035 70)' },
+      ],
+    }
+  },
+  {
+    name: '深海',
+    gradient: 'linear-gradient(160deg, oklch(0.88 0.01 220), oklch(0.85 0.02 210))',
+    cap: '冷色 · 深海蓝调',
+    desc: '深海蓝调 + 水下摄影感。压抑对应深海，释放对应浮出水面。从暗蓝到明亮的视觉过渡，模拟从海底上浮的过程。',
+    tags: ['深海蓝', '水下摄影', '水面切换', '上浮'],
+    storyboard: [
+      { time: '0:00', structure: 'Intro', lyrics: '（前奏）', visual: '深蓝水下镜头，气泡缓缓上升，光线从上方透下', scene: '深海水下', chars: '—' },
+      { time: '0:15', structure: 'Verse', lyrics: '沉下去 反而更安静', visual: '主角沉入水中，头发飘散，慢动作', scene: '深海水下', chars: '主角' },
+      { time: '0:45', structure: 'Verse', lyrics: '水面上的光 好远', visual: '水下看到的水面光线，模糊而遥远，折射波纹', scene: '水面交界处', chars: '主角' },
+      { time: '1:15', structure: 'Chorus', lyrics: '我要浮出水面 去见你', visual: '开始上浮，光线越来越亮，气泡加速', scene: '游泳池', chars: '主角' },
+      { time: '1:50', structure: 'Bridge', lyrics: '（间奏）', visual: '破出水面，阳光刺眼，水花四溅', scene: '开阔海面', chars: '主角' },
+      { time: '2:30', structure: 'Chorus', lyrics: '阳光终于 落在脸上', visual: '浮在水面，仰望天空，光线明亮', scene: '开阔海面', chars: '主角' },
+      { time: '3:20', structure: 'Outro', lyrics: '（尾奏）', visual: '平静的水面，蓝天和云倒映其中', scene: '天空', chars: '—' },
+    ],
+    style: '水下摄影风格，深蓝到浅蓝的渐变。大量气泡、光线折射、水面波纹效果。压抑阶段用暗色和低饱和度，释放阶段用明亮和高光溢出。',
+    characters: ['主角（潜水者/游泳者）'],
+    scenes: ['深海水下', '水面交界处', '游泳池', '开阔海面', '天空'],
+    items: ['气泡', '光线折射', '水草', '水面波纹', '泳镜'],
+    assets: {
+      image: [
+        { name: '潜水者', type: '角色', bg: 'oklch(0.90 0.01 220), oklch(0.87 0.015 220)' },
+        { name: '深海水下', type: '场景', bg: 'oklch(0.88 0.015 230), oklch(0.85 0.02 230)' },
+        { name: '海面全景', type: '场景', bg: 'oklch(0.92 0.008 220), oklch(0.89 0.01 220)' },
+        { name: '气泡纹理', type: '物品', bg: 'oklch(0.91 0.005 240), oklch(0.88 0.008 240)' },
+        { name: '分镜草图', type: '分镜图', bg: 'oklch(0.89 0.012 220), oklch(0.86 0.018 220)' },
+      ],
+      video: [
+        { name: '气泡上升', type: '分镜视频', bg: 'oklch(0.90 0.008 220), oklch(0.87 0.012 220)' },
+        { name: '水面突破', type: '分镜视频', bg: 'oklch(0.92 0.006 210), oklch(0.89 0.01 210)' },
+        { name: '水下参考', type: '上传视频', bg: 'oklch(0.88 0.015 230), oklch(0.85 0.02 230)' },
+        { name: '海流运动', type: '上传视频', bg: 'oklch(0.91 0.01 220), oklch(0.88 0.015 220)' },
+      ],
+    }
+  }
+];
+
+let activeProposalIdx = 0;
+let musicPlaying = false;
+
+// ═══ Render proposal detail ═══
+function renderProposal(idx) {
+  const p = proposals[idx];
+  const storyboardHTML = Array.isArray(p.storyboard)
+    ? `<table class="storyboard-table">
+        <thead><tr>
+          <th class="col-time">时间</th>
+          <th class="col-structure">音乐结构</th>
+          <th class="col-lyrics">歌词</th>
+          <th class="col-visual">画面描述</th>
+          <th class="col-scene">场景</th>
+          <th class="col-char">角色</th>
+        </tr></thead>
+        <tbody>
+          ${p.storyboard.map(row => `<tr>
+            <td class="col-time">${row.time}</td>
+            <td class="col-structure">${row.structure}</td>
+            <td class="col-lyrics">${row.lyrics}</td>
+            <td class="col-visual">${row.visual}</td>
+            <td class="col-scene">${row.scene}</td>
+            <td class="col-char">${row.chars}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`
+    : `<p style="white-space:pre-line">${p.storyboard}</p>`;
+
+  document.getElementById('proposalDetail').innerHTML = `
+    <div class="proposal-detail-header">
+      <div class="proposal-hero" style="background:${p.gradient}">
+        <span class="cap">${p.cap}</span>
+      </div>
+      <div class="proposal-detail-info">
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+        <div class="proposal-detail-tags">
+          ${p.tags.map(t => `<span class="pdtag">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="proposal-sections">
+      <div class="proposal-section full">
+        <h4>分镜剧本</h4>
+        ${storyboardHTML}
+      </div>
+      <div class="proposal-section full">
+        <h4>视觉风格</h4>
+        <p>${p.style}</p>
+      </div>
+      <div class="proposal-section">
+        <h4>角色</h4>
+        <div class="items">${p.characters.map(c => `<span class="item">${c}</span>`).join('')}</div>
+      </div>
+      <div class="proposal-section">
+        <h4>场景</h4>
+        <div class="items">${p.scenes.map(s => `<span class="item">${s}</span>`).join('')}</div>
+      </div>
+      <div class="proposal-section full">
+        <h4>物品</h4>
+        <div class="items">${p.items.map(i => `<span class="item">${i}</span>`).join('')}</div>
+      </div>
+    </div>
+  `;
+}
+
+function switchProposal(idx) {
+  activeProposalIdx = idx;
+  document.querySelectorAll('.proposal-tab').forEach(t => {
+    t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
+  });
+  renderProposal(idx);
+  renderAssets();
+}
+
+function closeProposal(idx) {
+  if (proposals.length <= 1) return;
+  const tab = document.querySelector(`.proposal-tab[data-idx="${idx}"]`);
+  if (tab) tab.remove();
+  proposals[idx] = null;
+  if (activeProposalIdx === idx) {
+    // Switch to nearest available
+    const next = proposals.findIndex((p, i) => p !== null && i !== idx);
+    activeProposalIdx = next >= 0 ? next : proposals.findIndex(p => p !== null);
+  }
+  document.querySelectorAll('.proposal-tab').forEach(t => t.classList.remove('active'));
+  const firstActive = document.querySelector('.proposal-tab:not([style*="display:none"])');
+  if (firstActive) {
+    firstActive.classList.add('active');
+    activeProposalIdx = parseInt(firstActive.dataset.idx);
+    renderProposal(activeProposalIdx);
+  }
+}
+
+function newProposal() {
+  const names = ['赛博朋克', '黑白电影', '抽象几何', '水彩手绘', '复古胶片', '极简主义'];
+  const name = names[Math.floor(Math.random() * names.length)];
+  const idx = proposals.length;
+  proposals.push({
+    name,
+    gradient: 'linear-gradient(160deg, oklch(0.90 0.01 265), oklch(0.87 0.02 265))',
+    cap: '新方案 · 待定义',
+    desc: '这是一个新的创意方向。等你确认后，我会展开详细的分镜和视觉设计。',
+    tags: ['新方案', '待定'],
+    storyboard: '1. 待展开分镜设计\n2. ...\n3. ...\n4. ...\n5. ...\n6. ...',
+    style: '待确定——告诉我你想要的感觉。',
+    characters: ['待确定'],
+    scenes: ['待确定'],
+    items: ['待确定']
+  });
+  const tabsEl = document.getElementById('proposalTabs');
+  const newBtn = tabsEl.querySelector('.proposal-tab-new');
+  const tab = document.createElement('div');
+  tab.className = 'proposal-tab';
+  tab.dataset.idx = idx;
+  tab.onclick = () => switchProposal(idx);
+  tab.innerHTML = `<span>${name}</span><span class="tab-close" onclick="event.stopPropagation();closeProposal(${idx})">✕</span>`;
+  tabsEl.insertBefore(tab, newBtn);
+  switchProposal(idx);
+}
+
+// ═══ Visual assets ═══
+let activeAssetType = 'image';
+
+function renderAssets() {
+  const p = proposals[activeProposalIdx];
+  const container = document.getElementById('visualAssets');
+  if (!p || !p.assets) {
+    container.innerHTML = `<div class="asset-thumb add" onclick="toggleUpload()">+</div>`;
+    return;
+  }
+  const items = p.assets[activeAssetType] || [];
+  container.innerHTML = items.map(a => `
+    <div class="asset-thumb" style="background:linear-gradient(160deg, ${a.bg});">
+      <span class="asset-label">${a.name}</span>
+      <span class="asset-badge badge-${a.type}">${a.type}</span>
+    </div>
+  `).join('') + `<div class="asset-thumb add" onclick="toggleUpload()">+</div>`;
+}
+
+function switchAssetType(el) {
+  document.querySelectorAll('.asset-type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  activeAssetType = el.dataset.type;
+  renderAssets();
+}
+
+// ═══ Music creation & MV project management ═══
+let mvProjectCount = 1;
+
+const sampleMusicData = [
+  { name: '深海回响', icon: '♬', bpm: 88, key: 'F 大调', style: '电子 / 氛围', gradient: 'oklch(0.88 0.01 220), oklch(0.85 0.02 210)' },
+  { name: '余温', icon: '♫', bpm: 76, key: 'D 大调', style: '流行 / 温暖', gradient: 'oklch(0.90 0.03 70), oklch(0.87 0.04 65)' },
+  { name: '失重', icon: '♪', bpm: 110, key: 'A 小调', style: '嘻哈 / 节奏', gradient: 'oklch(0.91 0.01 265), oklch(0.88 0.015 265)' },
+];
+let sampleMusicIdx = 0;
+
+function generateMusic() {
+  const data = sampleMusicData[sampleMusicIdx % sampleMusicData.length];
+  sampleMusicIdx++;
+  const list = document.getElementById('musicList');
+  const el = document.createElement('div');
+  el.className = 'music-item';
+  el.dataset.music = data.name;
+  el.innerHTML = `
+    <div class="music-icon">${data.icon}</div>
+    <div class="music-meta">
+      <div class="music-name">${data.name}</div>
+      <div class="music-tags">
+        <span class="music-tag">BPM ${data.bpm}</span>
+        <span class="music-tag">${data.key}</span>
+        <span class="music-tag">${data.style}</span>
+      </div>
+    </div>
+    <div class="music-actions">
+      <button class="btn-create-mv" onclick="createMV(this, '${data.name}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        创作MV
+      </button>
+      <button class="btn-delete-music" onclick="deleteMusic(this)" title="删除">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `;
+  list.appendChild(el);
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(8px)';
+  requestAnimationFrame(() => {
+    el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+}
+
+function deleteMusic(el) {
+  const item = el.closest('.music-item');
+  item.style.transition = 'opacity 0.2s ease';
+  item.style.opacity = '0';
+  setTimeout(() => { item.remove(); renderAreaNav(); }, 200);
+}
+
+function deleteMV(el) {
+  const project = el.closest('.mv-project');
+  project.style.transition = 'opacity 0.2s ease';
+  project.style.opacity = '0';
+  setTimeout(() => { project.remove(); renderAreaNav(); }, 200);
+}
+
+function createMV(btn, musicName) {
+  mvProjectCount++;
+  const canvas = document.getElementById('canvas');
+  const existingMV = canvas.querySelector('.mv-project');
+  const proj = document.createElement('div');
+  proj.className = 'creation-boundary mv-project';
+  proj.dataset.song = musicName;
+  proj.innerHTML = `
+    <div class="mv-project-header">
+      <div class="mv-project-title-row">
+        <span class="mv-project-title">${musicName}</span>
+        <button class="btn-delete-mv" onclick="deleteMV(this)" title="删除此MV项目">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <span class="mv-project-subtitle">基于「${musicName}」的 MV 创作</span>
+    </div>
+    <div class="canvas-regions">
+      <div class="region-wrapper music">
+        <div class="region-tab-bar">
+          <div class="region-tab active">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            音乐
+          </div>
+        </div>
+        <div class="region-tab-body">
+        <div class="music-content">
+          <div class="album" onclick="toggleMusicPlay()">
+            <span class="note">♪</span>
+            <span class="title">${musicName}</span>
+            <span class="dur">3:42</span>
+            <div class="play-overlay">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="music-info">
+            <div class="song-name">${musicName}</div>
+            <div class="meta-row">
+              <div class="meta-item">BPM <span>—</span></div>
+              <div class="meta-item">调性 <span>—</span></div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-item">拍号 <span>—</span></div>
+              <div class="meta-item">风格 <span>—</span></div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="region-wrapper understanding">
+        <div class="region-tab-bar">
+          <div class="region-tab active">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            音乐理解
+          </div>
+        </div>
+        <div class="region-tab-body">
+        <div class="analysis-body">
+          <div class="curve-section">
+            <h3>情绪曲线</h3>
+            <p style="font-size:var(--text-xs);color:var(--text-tertiary);">等待音乐分析...</p>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="region-wrapper proposals">
+        <div class="region-tab-bar">
+          <div class="region-tab active">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            创意方案
+          </div>
+          <div class="proposal-tabs">
+            <button class="proposal-tab-new" onclick="newProposal()" title="新方案">+</button>
+          </div>
+        </div>
+        <div class="region-tab-body">
+        <div class="proposal-detail">
+          <p style="font-size:var(--text-xs);color:var(--text-tertiary);text-align:center;padding:var(--space-8) 0;">尚未生成创意方案</p>
+        </div>
+        </div>
+      </div>
+      <div class="region-wrapper assets">
+        <div class="region-tab-bar">
+          <div class="region-tab active">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            视觉资产
+          </div>
+        </div>
+        <div class="region-tab-body">
+        <div class="visual-assets" style="min-height:80px;">
+          <div class="asset-thumb add" onclick="toggleUpload()">+</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  `;
+  proj.style.opacity = '0';
+  proj.style.transform = 'translateX(16px)';
+  const column = document.querySelector('.mv-projects-column');
+  // Always append to the right
+  column.appendChild(proj);
+  requestAnimationFrame(() => {
+    proj.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    proj.style.opacity = '1';
+    proj.style.transform = 'translateX(0)';
+  });
+  // Horizontal scroll to new project
+  setTimeout(() => {
+    const scrollTarget = proj.offsetLeft - proj.offsetWidth;
+    column.scrollTo({ left: Math.max(0, scrollTarget), behavior: 'smooth' });
+    renderAreaNav();
+    // Auto-navigate to the new MV project
+    const areas = getAreaList();
+    if (areas.length > 0) {
+      activeAreaId = areas[areas.length - 1].id;
+      renderAreaNav();
+    }
+  }, 50);
+}
+
+// ═══ Music play ═══
+function toggleMusicPlay() {
+  musicPlaying = !musicPlaying;
+  const album = document.getElementById('albumCover');
+  const icon = document.getElementById('albumPlayIcon');
+  album.classList.toggle('playing', musicPlaying);
+  icon.innerHTML = musicPlaying
+    ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+    : '<polygon points="5 3 19 12 5 21 5 3"/>';
+}
+
+// ═══ Sidebar chat ═══
 const $m = document.getElementById('messages');
 const $in = document.getElementById('chatInput');
 const viewport = document.getElementById('viewport');
@@ -711,7 +1871,6 @@ function reply(t) {
   return r[t] || '收到了。让我想想怎么处理——你觉得是保持当前方向调整，还是换个思路？';
 }
 
-function pick(el) { document.querySelectorAll('.proposal').forEach(p => p.classList.remove('active')); el.classList.add('active'); }
 function toggleUpload() { document.getElementById('uploadOverlay').classList.toggle('show'); }
 function toggleSettings() { document.getElementById('settings').classList.toggle('open'); }
 
@@ -722,13 +1881,32 @@ function doUpload(type) {
   setTimeout(() => {
     rmTyping();
     const r = {
-      '图片': '这张图的视觉风格我提取了——和你的歌很搭。我会融入方案A。',
+      '图片': '这张图的视觉风格我提取了——和你的歌很搭。我会融入方案中。',
       '视频': '这个运镜手法学到了——手持感 + 缓慢推进。我会在分镜里用上。',
       '音频': '参考音乐的情绪我感受到了——梦幻、飘渺、带点忧伤。',
       '文本': '这段的画面感很强。我来出一版方案。'
     };
     add('ai', r[type]);
   }, 1600);
+}
+
+function openEditorUpload() {
+  add('user', '我想上传素材添加到视频中');
+  typing();
+  setTimeout(() => {
+    rmTyping();
+    add('ai', '你可以直接拖图片/视频到右边的素材库，我来提取视觉元素。');
+  }, 1200);
+}
+
+function doExport() {
+  closePreview();
+  add('user', '导出成片');
+  typing();
+  setTimeout(() => {
+    rmTyping();
+    add('ai', '正在渲染——3:42 的 MV 大约需要 5-10 分钟。完成后我会通知你。');
+  }, 1000);
 }
 
 // ═══ Preview modal ═══
@@ -744,8 +1922,206 @@ function seek(e, el) {
   document.getElementById('prog').style.width = ((e.clientX - r.left) / r.width * 100) + '%';
 }
 
+// ═══ Asset category tabs (editor) ═══
+function switchTab(el) {
+  document.querySelectorAll('.asset-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const type = el.dataset.tab;
+  document.querySelectorAll('.asset-card').forEach(card => {
+    card.style.display = card.dataset.type === type ? '' : 'none';
+  });
+}
+
+// ═══ Timeline: add subtitle track ═══
+let subtitleAdded = false;
+function addSubtitleTrack() {
+  if (subtitleAdded) return;
+  subtitleAdded = true;
+  const container = document.getElementById('subtitleTracks');
+  container.innerHTML = `
+    <div class="tl-track">
+      <span class="tl-track-label">字幕</span>
+      <div class="tl-track-content tl-track-subtitle">
+        <div class="tl-clip" draggable="true" data-name="前奏" style="flex:1; background: oklch(0.94 0.01 265);"><span class="clip-handle"></span>前奏</div>
+        <div class="tl-clip" draggable="true" data-name="主歌 1" style="flex:2; background: oklch(0.92 0.02 265);"><span class="clip-handle"></span>窗外的雨 还没停</div>
+        <div class="tl-clip" draggable="true" data-name="副歌" style="flex:2; background: oklch(0.90 0.03 265);"><span class="clip-handle"></span>我在这片蓝里 找你</div>
+        <div class="tl-clip" draggable="true" data-name="间奏" style="flex:1; background: oklch(0.94 0.01 265);"><span class="clip-handle"></span>间奏</div>
+        <div class="tl-clip" draggable="true" data-name="主歌 2" style="flex:2; background: oklch(0.92 0.02 265);"><span class="clip-handle"></span>城市的灯 太安静</div>
+        <div class="tl-clip" draggable="true" data-name="副歌" style="flex:2; background: oklch(0.90 0.03 265);"><span class="clip-handle"></span>我在这片蓝里 等你</div>
+        <div class="tl-clip" draggable="true" data-name="尾奏" style="flex:1; background: oklch(0.94 0.01 265);"><span class="clip-handle"></span>尾奏</div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══ Timeline: add generic track ═══
+let trackCount = 0;
+function addTrack() {
+  trackCount++;
+  const timelineArea = document.querySelector('.timeline-area');
+  const addTrackBtn = document.querySelector('.tl-add-track');
+  const newTrack = document.createElement('div');
+  newTrack.className = 'tl-track';
+  newTrack.innerHTML = `
+    <span class="tl-track-label">轨道 ${trackCount}</span>
+    <div class="tl-track-content" style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius); display:flex; align-items:center; padding:0 var(--space-3);">
+      <span style="font-size:10px; color:var(--text-tertiary);">拖拽素材到此处</span>
+    </div>
+  `;
+  // Enable drop on new track
+  const tc = newTrack.querySelector('.tl-track-content');
+  tc.addEventListener('dragover', e => {
+    if (!dragAsset) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    tc.style.outline = '2px solid var(--accent)';
+  });
+  tc.addEventListener('dragleave', () => { tc.style.outline = ''; });
+  tc.addEventListener('drop', e => {
+    e.preventDefault();
+    tc.style.outline = '';
+    if (dragAsset) {
+      const name = dragAsset.dataset.asset;
+      const clip = document.createElement('div');
+      clip.className = 'tl-clip';
+      clip.draggable = true;
+      clip.dataset.name = name;
+      clip.style.cssText = 'flex:1; background:oklch(0.90 0.02 265); height:28px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:500; cursor:grab; position:relative;';
+      clip.innerHTML = `<span class="clip-handle"></span>${name}`;
+      clip.addEventListener('dragstart', ev => {
+        dragClip = clip;
+        clip.classList.add('dragging');
+        ev.dataTransfer.effectAllowed = 'move';
+        ev.dataTransfer.setData('text/plain', name);
+      });
+      clip.addEventListener('dragend', ev => {
+        clip.classList.remove('dragging');
+        dragClip = null;
+        videoTrack.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+      });
+      tc.querySelector('span')?.remove();
+      tc.appendChild(clip);
+    }
+    dragAsset = null;
+  });
+
+  timelineArea.insertBefore(newTrack, addTrackBtn);
+}
+
+// ═══ Drag & drop clips on video timeline ═══
+const videoTrack = document.getElementById('videoTrack');
+let dragClip = null;
+
+videoTrack.addEventListener('dragstart', e => {
+  const clip = e.target.closest('.tl-clip');
+  if (!clip) return;
+  dragClip = clip;
+  clip.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', clip.dataset.name);
+});
+
+videoTrack.addEventListener('dragend', e => {
+  if (dragClip) dragClip.classList.remove('dragging');
+  dragClip = null;
+  videoTrack.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+});
+
+videoTrack.addEventListener('dragover', e => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  videoTrack.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+  const clips = [...videoTrack.querySelectorAll('.tl-clip:not(.dragging)')];
+  const indicator = document.createElement('div');
+  indicator.className = 'drop-indicator';
+  indicator.style.cssText = 'width:2px; background:var(--accent); border-radius:1px; flex-shrink:0;';
+  for (const c of clips) {
+    const rect = c.getBoundingClientRect();
+    if (e.clientX < rect.left + rect.width / 2) {
+      c.before(indicator);
+      return;
+    }
+  }
+  videoTrack.appendChild(indicator);
+});
+
+videoTrack.addEventListener('drop', e => {
+  e.preventDefault();
+  const indicator = videoTrack.querySelector('.drop-indicator');
+  if (dragClip && indicator) {
+    indicator.before(dragClip);
+  }
+  indicator?.remove();
+  dragClip = null;
+});
+
+// ═══ Asset card → drop on video track ═══
+let dragAsset = null;
+
+document.querySelectorAll('.asset-card').forEach(card => {
+  card.addEventListener('dragstart', e => {
+    dragAsset = card;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('text/plain', card.dataset.asset);
+  });
+  card.addEventListener('dragend', e => {
+    card.classList.remove('dragging');
+    dragAsset = null;
+    videoTrack.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+  });
+});
+
+videoTrack.addEventListener('dragover', e => {
+  if (!dragAsset) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  videoTrack.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+  const clips = [...videoTrack.querySelectorAll('.tl-clip:not(.dragging)')];
+  const indicator = document.createElement('div');
+  indicator.className = 'drop-indicator';
+  indicator.style.cssText = 'width:2px; background:var(--accent); border-radius:1px; flex-shrink:0;';
+  for (const c of clips) {
+    const rect = c.getBoundingClientRect();
+    if (e.clientX < rect.left + rect.width / 2) {
+      c.before(indicator);
+      return;
+    }
+  }
+  videoTrack.appendChild(indicator);
+});
+
+videoTrack.addEventListener('drop', e => {
+  e.preventDefault();
+  const indicator = videoTrack.querySelector('.drop-indicator');
+  if (dragAsset && indicator) {
+    const name = dragAsset.dataset.asset;
+    const newClip = document.createElement('div');
+    newClip.className = 'tl-clip';
+    newClip.draggable = true;
+    newClip.dataset.name = name;
+    newClip.style.flex = '1';
+    newClip.style.background = 'oklch(0.90 0.02 265)';
+    newClip.innerHTML = `<span class="clip-handle"></span>${name}`;
+    indicator.before(newClip);
+    newClip.addEventListener('dragstart', ev => {
+      dragClip = newClip;
+      newClip.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', name);
+    });
+    newClip.addEventListener('dragend', ev => {
+      newClip.classList.remove('dragging');
+      dragClip = null;
+      videoTrack.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    });
+  }
+  indicator?.remove();
+  dragAsset = null;
+});
+
 // ═══ Zoom & Pan ═══
-let scale = 1, panX = 40, panY = 20;
+let scale = 1, panX = 40, panY = 0;
 let isPanning = false, startX, startY;
 
 function applyTransform() {
@@ -759,11 +2135,11 @@ function zoom(delta) {
 }
 
 function zoomReset() {
-  scale = 1; panX = 40; panY = 20;
+  scale = 1; panX = 40;
+  centerCanvasTop();
   applyTransform();
 }
 
-// Pan with mouse drag
 viewport.addEventListener('mousedown', e => {
   if (e.button !== 0) return;
   if (e.target.closest('.preview-trigger') || e.target.closest('.zoom-controls')) return;
@@ -786,24 +2162,109 @@ document.addEventListener('mouseup', () => {
   viewport.classList.remove('grabbing');
 });
 
-// Zoom with scroll wheel
 viewport.addEventListener('wheel', e => {
   e.preventDefault();
   const delta = e.deltaY > 0 ? -0.05 : 0.05;
   zoom(delta);
 }, { passive: false });
 
-// Init position
-applyTransform();
+// ═══ Area Navigation ═══
+let activeAreaId = null;
 
-// Close settings on outside click
+function getAreaList() {
+  const areas = [];
+  // Music creation area
+  const musicBoundary = document.querySelector('.music-creation');
+  if (musicBoundary) {
+    areas.push({ id: 'music', name: '音乐创作', icon: 'music', el: musicBoundary });
+  }
+  // MV project areas
+  document.querySelectorAll('.mv-project').forEach((el, idx) => {
+    const song = el.dataset.song || '未命名';
+    areas.push({ id: 'mv-' + idx, name: song, icon: 'mv', el });
+  });
+  return areas;
+}
+
+function renderAreaNav() {
+  const nav = document.getElementById('areaNav');
+  const areas = getAreaList();
+  if (!activeAreaId && areas.length > 0) activeAreaId = areas[0].id;
+
+  let html = '';
+  areas.forEach((area, i) => {
+    const icon = area.icon === 'music'
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    const activeClass = area.id === activeAreaId ? ' active' : '';
+    if (i > 0) html += '<div class="area-nav-sep"></div>';
+    html += `<button class="area-nav-item${activeClass}" data-area="${area.id}" onclick="navigateToArea('${area.id}')">${icon}<span>${area.name}</span></button>`;
+  });
+  html += '<button class="area-nav-add" onclick="generateMusic()" title="生成新音乐"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+  nav.innerHTML = html;
+}
+
+function navigateToArea(areaId) {
+  activeAreaId = areaId;
+  renderAreaNav();
+
+  const areas = getAreaList();
+  const target = areas.find(a => a.id === areaId);
+  if (!target) return;
+
+  const el = target.el;
+  const vpRect = viewport.getBoundingClientRect();
+  const canvasRect = canvas.getBoundingClientRect();
+
+  // Element position relative to canvas
+  const elLeft = el.offsetLeft;
+  const elTop = el.offsetTop;
+
+  // Target: center the element in the viewport
+  const targetPanX = -(elLeft * scale) + (vpRect.width / 2) - (el.offsetWidth * scale / 2);
+  const targetPanY = -(elTop * scale) + (vpRect.height / 2) - (el.offsetHeight * scale / 2);
+
+  // Animate pan
+  const startPanX = panX;
+  const startPanY = panY;
+  const dx = targetPanX - startPanX;
+  const dy = targetPanY - startPanY;
+  const duration = 350;
+  const start = performance.now();
+
+  function animate(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // easeInOutCubic
+    panX = startPanX + dx * ease;
+    panY = startPanY + dy * ease;
+    applyTransform();
+    if (t < 1) requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+}
+
+// ═══ Init ═══
+function centerCanvasTop() {
+  // Position canvas so the top content is visible in the viewport
+  const vpH = viewport.clientHeight;
+  const canvasH = canvas.scrollHeight;
+  // Show top portion with some padding
+  panY = Math.max(20, (vpH - canvasH) / 2 + 10);
+}
+
+applyTransform();
+centerCanvasTop();
+applyTransform();
+renderProposal(0);
+renderAssets();
+renderAreaNav();
+
 document.addEventListener('click', e => {
   const s = document.getElementById('settings');
   if (s.classList.contains('open') && !s.contains(e.target) && !e.target.closest('.btn-settings') && !e.target.closest('.model-label'))
     s.classList.remove('open');
 });
 
-// Escape to close modals
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closePreview();

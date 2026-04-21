@@ -13,8 +13,11 @@ Tunee Skill库/
 ├── cinematic-prompt-generator/   ← 电影感图片提示词生成 Skill
 │   ├── SKILL.md                  ← Skill 入口，定义触发条件和执行流程
 │   └── references/               ← 9个模块的知识库（主题/景别/构图等）
-├── cinematic-prompt-generator.zip ← 打包版（供分发安装）
-└── free-music-generator.zip       ← 免费音乐生成 Skill 打包版
+└── free-music-generator/         ← 免费音乐生成 Skill
+    ├── SKILL.md                  ← Skill 入口
+    ├── lyrics-guide.md           ← 歌词处理指南
+    ├── music-prompt-guide.md     ← 音乐提示词指南
+    └── scripts/                  ← 辅助脚本
 ```
 
 ---
@@ -31,13 +34,15 @@ Tunee Skill库/
 
 ### free-music-generator
 
-免费音乐生成 Skill，已打包为 zip 格式，解压后可安装使用。
+免费音乐生成 Skill。包含歌词处理指南和音乐提示词指南，支持多种音乐风格的 AI 音乐生成。
+
+详细规则见 `free-music-generator/SKILL.md`。
 
 ---
 
 ## 安装方式
 
-将 Skill 文件夹放置到 Claude Code 的 Skills 目录，或解压 zip 包安装：
+将 Skill 文件夹放置到 Claude Code 的 Skills 目录，或直接安装：
 
 ```bash
 # 示例：安装 cinematic-prompt-generator
