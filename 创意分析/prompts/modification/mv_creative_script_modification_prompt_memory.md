@@ -55,40 +55,56 @@ Each entry: `{ "user_modification": "把整体色调改成暖色系", "history_m
 
 | Field | Type | Description |
 |---|---|---|
-| `user_modification` | string | The user's instruction text from that round |
-| `history_mv_guide` | string | JSON-stringified `mv_guide` from that round (excluding `style_guide`). **Parsing**: internally parse to extract `md_stages`, `mv_elements.characters`, `mv_elements.scenes`. |
+| `user_modification` | string | The instruction text from that round. Empty `""` marks the generation round (state produced by initial generation, not by a user modification). |
+| `history_mv_guide` | string | JSON-stringified `mv_guide` of that round (includes `md_stages`, `mv_elements`, `style_guide`). Internally parse before use. |
 
 ### 3.2 History-Aware Modification
 
-When `history` is non-empty:
-1. **Understand conversation trajectory**: read each non-empty `user_modification` to track intent evolution (skip entries where `user_modification` is empty string)
-2. **Current instruction overrides conflicts**: follow current `user_modification` — do not reconcile conflicting historical intents
-3. **Build incrementally**: use `history[0].history_mv_guide` as contextual reference; use `ori_mv_guide` as baseline
+When `history` is non-empty (and `user_modification` is NOT a revert instruction — revert handling is in Sec 3.3):
+1. **Understand conversation trajectory** (for trajectory analysis only): read each non-empty `user_modification` to track intent evolution; skip entries with empty `user_modification` (those mark the generation round).
+2. **Current instruction overrides conflicts**: follow current `user_modification` — do not reconcile conflicting historical intents.
+3. **Build incrementally**: `ori_mv_guide` is the active baseline (current state); use `history[0].history_mv_guide` only as contextual reference.
 
-### 3.3 Revert / Back-to-Previous
+### 3.3 Revert Logic
 
-When `user_modification` matches any revert pattern below, apply the corresponding action and **exit immediately**. Do NOT apply any other modification logic. Priority: (a) → (b) → (c).
+**Execution**: when `user_modification` matches a revert pattern, return the target state and exit immediately. Do NOT apply any modification logic. Priority: **(a) → (b) → (c)**; first match wins.
 
-**(a) Revert to original** — signals: "回到原来那版" / "回到原版" / "回到初始版本" / "回到最初版" / "回到最初" / "reset" / "restore to original" / "back to original" / "revert to original" / "元のまま" / "원본으로":
-- Return `ori_mv_guide` (full object, all fields verbatim) and exit.
-- This restores the state before any modification rounds.
+**Naming trap** — `ori_mv_guide` holds the **CURRENT** state (the baseline being modified this round), NOT the original generation. The generation G lives at `history[history.length - 1]` (the last entry, marked by `user_modification = ""`) while still within the 5-round window; after more than 5 modifications, G is evicted and the last entry becomes the earliest retained state — treat that as "original" for (a).
 
-**(b) Revert to specific version** — signals: `user_modification` contains a version number N (Arabic numeral `1-9` or Chinese character `一二三四五`) AND a revert verb ("回到" / "返回" / "revert" / "go back" / "back to" / "恢复" / "バージョン" / "version" / "버전" / "版"):
-- Extract N from the instruction (e.g., "回到第二版" → N=2, "回到第3版" → N=3, "back to version 4" → N=4).
-- If N ≤ 0: return `{"error": "invalid version number: must be positive"}` and exit.
-- If `history` has fewer than N entries: return `{"error": "version " + N + " not found; only " + history.length + " modification(s) available"}` and exit.
-- Return JSON-parsed `history[N-1].history_mv_guide` + `style_guide` from `ori_mv_guide.style_guide` and exit.
-- **Version mapping**: N=1 → `history[0]` (most recent), N=2 → `history[1]`, etc.
+**Version count** = `history.length + 1` (all past states in `history` plus the current state in `ori_mv_guide`).
 
-**(c) Revert to previous** — signals: "回到上一次" / "返回到上一个版本" / "回到上一轮" / "回到上一步" / "撤销" / "撤回" / "回退" / "还原" / "go back" / "undo last change" / "back to previous" / "prev version" (no version number specified):
-- If `history` is empty: return `{"error": "no previous round to revert to"}`.
-- If `history` has ≥ 2 entries: compare `history[0].history_mv_guide` (parsed) with `ori_mv_guide`. If they differ, return JSON-parsed `history[0].history_mv_guide` + `style_guide` from `ori_mv_guide.style_guide` and exit. If they match (backend pre-populated current state into history[0]), return JSON-parsed `history[1].history_mv_guide` + `style_guide` from `ori_mv_guide.style_guide` and exit.
-- If `history` has exactly 1 entry AND that entry's `history_mv_guide` content differs from `ori_mv_guide`: return JSON-parsed `history[0].history_mv_guide` + `style_guide` from `ori_mv_guide.style_guide` and exit. (**Comparison**: parse `history_mv_guide` as JSON, compare `md_stages`, `mv_elements.characters`, and `mv_elements.scenes` — not the raw string.)
-- If `history` has exactly 1 entry AND parsed content matches `ori_mv_guide` (backend pre-populated with current): return `{"error": "no earlier version to revert to. Only one state exists — use '回到原版' to restore the original generation."}`.
+**Output format (all revert paths)**: parsed `history_mv_guide` (or `ori_mv_guide` verbatim when the target IS the current state) + `style_guide` copied verbatim from `ori_mv_guide.style_guide`.
+
+---
+
+**(a) Revert to original** — revert verb + NO version number + "original" semantics. Signals: "回到原来那版" / "回到原版" / "回到初始版本" / "回到最初" / "reset" / "restore to original" / "back to original" / "revert to original" / "元のまま" / "원본으로".
+- `history` non-empty → return `history[history.length - 1]`.
+- `history` empty → return `ori_mv_guide` verbatim (no prior rounds; current IS the original).
+
+**Do NOT** shortcut (a) to `ori_mv_guide` when `history` is non-empty — G lives in `history[last]`, not in `ori_mv_guide`.
+
+---
+
+**(b) Revert to specific version** — revert verb + numeric N (Arabic `1-9` or Chinese `一二三四五`). Determine mode by the keyword that carries N:
+
+**Absolute mode** — signal contains `第N版` / `version N` / `バージョンN` / `버전N` (e.g. "回到第二版"). N=1 is the oldest version (G when within window); N = `history.length + 1` is the current state.
+- `1 ≤ N ≤ history.length` → return `history[history.length - N]`.
+- `N == history.length + 1` → return `ori_mv_guide` (current state; no-op but valid).
+- Otherwise → `{"error": "version " + N + " not found; only " + (history.length + 1) + " version(s) available"}`.
+
+**Relative mode** — signal contains `上N版` / `back N` / `N steps back` (e.g. "回到上两版"). N=1 is one step back from current.
+- `1 ≤ N ≤ history.length` → return `history[N - 1]`.
+- Otherwise → `{"error": "cannot go back " + N + " steps; only " + history.length + " step(s) available"}`.
+
+---
+
+**(c) Revert to previous** — revert verb + NO version number + "undo" semantics. Signals: "撤销" / "撤回" / "回退" / "还原" / "undo" / "undo last change" / "back to previous" / "prev version".
+- `history` non-empty → return `history[0]` (one step back).
+- `history` empty → `{"error": "no previous version to revert to"}`.
 
 ### 3.4 Post-Revert Baseline
 
-When processing a modification round that follows a revert, the `ori_mv_guide` already reflects the reverted state — treat it as the active baseline. Do not attempt to reconstruct pre-revert states from history; use `history` only for understanding conversation trajectory (Sec 3.2 step 1).
+After a revert round completes, the next call's `ori_mv_guide` already reflects the reverted state — treat it as the active baseline. Do not reconstruct pre-revert states from history; use `history` only for trajectory analysis (Sec 3.2).
 
 ---
 
@@ -198,7 +214,7 @@ Before returning, verify every item. If any fails, repair and re-verify.
 ## 8. Execution Order
 
 1. Extract and normalize payload; validate `user_modification` present
-2. **If Revert/Back-to-Previous detected (Sec 3.3), execute the matching revert action then exit.** (a) → full `ori_mv_guide`; (b) → `history[N-1]`; (c) → `history[0]` if ≥ 2 entries and differs from `ori_mv_guide`, else `history[1]` if pre-populated, else `history[0]` if single entry differs, else error. All with `style_guide` from `ori_mv_guide.style_guide`.
+2. **If Revert detected (Sec 3.3), execute and exit.** (a) → `history[last]` (or `ori_mv_guide` if history empty); (b) absolute → `history[length - N]`, or `ori_mv_guide` when `N = length + 1`; (b) relative → `history[N - 1]`; (c) → `history[0]` (or error if empty). Output: parsed `history_mv_guide` (or `ori_mv_guide` verbatim for current-state case) + `style_guide` copied from `ori_mv_guide.style_guide`.
 3. Parse `ori_mv_guide`
 4. If `history` non-empty, understand conversation trajectory and identify rejected changes
 5. Classify modification scope
@@ -309,73 +325,44 @@ Before returning, verify every item. If any fails, repair and re-verify.
 
 ### Example D · Revert Scenarios
 
-**D1 — Revert to original:**
-```json
-{
-  "user_modification": "回到原来那版",
-  "ori_mv_guide": { "md_stages": "| 时间段 | ... |\n| 0s-17s | ... | 原始画面... | 场景A | Neon |", "mv_elements": { "characters": [...], "scenes": [...] }, "style_guide": "原始风格..." },
-  "history": [
-    { "user_modification": "把场景改成镜廊", "history_mv_guide": "{...镜廊...}" },
-    { "user_modification": "把整体色调改成暖色", "history_mv_guide": "{...暖色...}" }
-  ],
-  "language_code": "zh", "mv_type": "story_mode", "audio_duration": 48
-}
-```
-> - revert-to-original: matches "原来那版"; returns full `ori_mv_guide` verbatim
-> - `history` ignored; all modification rounds undone
+All examples assume the *style_guide* is copied verbatim from `ori_mv_guide.style_guide` in every output.
 
-**Output:**
-```json
-{
-  "mv_guide": {
-    "style_guide": "原始风格...",
-    "md_stages": "| 时间段 | ... |\n| 0s-17s | ... | 原始画面... | 场景A | Neon |",
-    "mv_elements": { "characters": [...], "scenes": [...] }
-  }
-}
-```
+**D1 — 回到原来那版 (3.3 a)**
 
-**D2 — Revert to specific version (N=2):**
-```json
-{
-  "user_modification": "回到第二版",
-  "ori_mv_guide": { "md_stages": "...", "mv_elements": {...}, "style_guide": "..." },
-  "history": [
-    { "user_modification": "第2轮：去掉角色B", "history_mv_guide": "{...no-B...}" },
-    { "user_modification": "第1轮：添加场景C", "history_mv_guide": "{...scene-C...}" }
-  ],
-  "language_code": "zh", "mv_type": "story_mode", "audio_duration": 48
-}
-```
-> - revert-to-specific-version: N=2 → `history[1]` (第1轮 result, the one with 场景C)
-> - Version mapping: N=1 → history[0] (most recent), N=2 → history[1]
+`history = [{user_mod:"整体改成暖色", hvg:"{M1}"}, {user_mod:"", hvg:"{G}"}]`, `ori_mv_guide = M2` (current).
 
-**Output:**
-```json
-{
-  "mv_guide": {
-    "style_guide": "...",
-    "md_stages": "...(from history[1], 添加场景C的结果)...",
-    "mv_elements": { "...": "..." }
-  }
-}
-```
+> Revert verb + no number + "原来那版" → (a). `history` non-empty → return `history[history.length - 1]` = `history[1]` (G).
+>
+> **Do NOT return `ori_mv_guide` (= M2).** G lives in history, not in `ori_mv_guide`.
 
-**D3 — Version out of range:**
-```json
-{
-  "user_modification": "回到第8版",
-  "ori_mv_guide": { "md_stages": "...", "mv_elements": {...}, "style_guide": "..." },
-  "history": [
-    { "user_modification": "第2轮", "history_mv_guide": "{...}" },
-    { "user_modification": "第1轮", "history_mv_guide": "{...}" }
-  ],
-  "language_code": "zh", "mv_type": "story_mode", "audio_duration": 48
-}
-```
-> - N=8 but only 2 history entries → error
+---
 
-**Output:**
-```json
-{"error": "version 8 not found; only 2 modification(s) available"}
-```
+**D2 — Absolute vs Relative, including the `N = length + 1` boundary (3.3 b)**
+
+Shared context: `history.length = 2`, `history = [{mod1, M1}, {"", G}]`, `ori_mv_guide = M2` (current). Total versions = 3 (G, M1, M2).
+
+| `user_modification` | Mode | N | Formula | Returned state |
+|---|---|---|---|---|
+| `回到第一版` | Absolute | 1 | `history[2 - 1] = history[1]` | G |
+| `回到第二版` | Absolute | 2 | `history[2 - 2] = history[0]` | M1 |
+| `回到第三版` | Absolute | 3 (= length + 1) | **`ori_mv_guide`** | M2 (current, no-op) |
+| `回到上一版` | Relative | 1 | `history[1 - 1] = history[0]` | M1 (1 step back) |
+| `回到上两版` | Relative | 2 | `history[2 - 1] = history[1]` | G (2 steps back) |
+
+---
+
+**D3 — Out-of-range errors (3.3 b)**
+
+With `history.length = 2` (total versions = 3):
+- `回到第8版` → `{"error": "version 8 not found; only 3 version(s) available"}`
+- `回到上8版` → `{"error": "cannot go back 8 steps; only 2 step(s) available"}`
+
+---
+
+**D4 — 撤销 / undo (3.3 c)**
+
+`history = [{mod1, M1}, {"", G}]`. Input `user_modification = "撤销"`.
+
+> Revert verb + no number + "undo" semantics → (c). Return `history[0]` = M1 (one step back).
+>
+> Empty history → `{"error": "no previous version to revert to"}`.
