@@ -9,9 +9,9 @@
 
 | 类别 | 数量 | 做什么 |
 |------|------|--------|
-| **原子工具** | **7** | Agent 做不了、必须依赖外部的事 |
+| **原子工具** | **8** | Agent 做不了、必须依赖外部的事 |
 | **Skill 组合** | 4 | 原子工具的固定编排 |
-| **MCP Server** | 3 | 外部服务（图片模型 / 视频模型 / 存储） |
+| **MCP Server** | 4 | 外部服务（图片模型 / 视频模型 / 存储 / ffmpeg） |
 | **Agent 内部能力** | 若干 | Agent 本身就是 LLM，不需要工具 |
 | **前端操作** | 若干 | 用户上传、画布拖拽，不由 Agent 调用 |
 | **对话回复格式** | 6 | Agent 给前端的消息类型 |
@@ -34,7 +34,8 @@
 | 4 | `evaluate_quality` | asset_url, asset_type | score, issues[], suggestion | 3-10s | quality_issue | VLM API |
 | 5 | `web_search` | query, max_results? | 参考列表 | 2-8s | references_ready | 搜索 API |
 | 6 | `get_asset` | asset_id | { url, prompt?, seed?, metadata } | <1s | 无 | storage_service |
-| 7 | `push_to_canvas` | event_type, target_region, data | success | <1s | 对应事件 | 前端 EventBus |
+| 7 | `run_ffmpeg` | input_url(s), operation, params | { output_url, metadata } | 1-30s | 无 | ffmpeg CLI |
+| 8 | `push_to_canvas` | event_type, target_region, data | success | <1s | 对应事件 | 前端 EventBus |
 
 ### 2.1 详细定义
 
@@ -98,7 +99,25 @@ def web_search(query: str, source?: str, max_results: int = 5) -> dict:
     }
 ```
 
-**Tool 6: `get_asset`**
+**Tool 6: `run_ffmpeg`**
+```python
+def run_ffmpeg(inputs: list[str], operation: str, params: dict) -> dict:
+    """
+    operation 取值:
+      - "extract_audio": 从视频提取音频 → 给 analyze_music
+      - "resize": 调整图片/视频尺寸 → 给 generate_video 的 first frame
+      - "concat": 拼接多段视频 → 导出成片
+      - "add_subtitles": 烧录字幕轨道
+      - "convert": 格式转换/转码
+      - "trim": 按时间裁剪
+    """
+    return {
+        "output_url": "https://cdn.tunee.com/processed/...",
+        "metadata": {"duration": 225, "format": "mp4", "codec": "h264", "size_bytes": 50_000_000}
+    }
+```
+
+**Tool 7: `get_asset`**
 ```python
 def get_asset(asset_id: str) -> dict:
     return {
@@ -111,7 +130,7 @@ def get_asset(asset_id: str) -> dict:
     }
 ```
 
-**Tool 7: `push_to_canvas`**
+**Tool 8: `push_to_canvas`**
 ```python
 def push_to_canvas(event_type: str, target_region: str, data: dict) -> dict:
     return {"success": True}
@@ -215,6 +234,7 @@ Agent 自己做的事:
 | `image_model_api` | generate_image | `generate_image(prompt, size?, seed?) → { image_url }` | 短异步，~20s |
 | `video_model_api` | generate_video | `generate_video(prompt, frame_url?, duration, model) → { task_id }` | 异步，60-120s，需轮询 |
 | `storage_service` | get_asset | `get_asset(asset_id) → { url, metadata }` | 同步 |
+| `ffmpeg_service` | run_ffmpeg | `run_ffmpeg(inputs, operation, params) → { output_url }` | 同步/短异步，1-30s |
 
 `upload_asset` 不在这里——用户上传是前端操作，文件直接进 storage。Agent 通过 `get_asset` 访问。
 
@@ -551,7 +571,7 @@ def agent_loop(user_message: str, state: AgentState) -> AgentReply:
 │  原子工具（需要外部调用）:                                 │
 │    analyze_music │ generate_image │ generate_video      │
 │    evaluate_quality │ web_search │ get_asset            │
-│    push_to_canvas                                       │
+│    run_ffmpeg │ push_to_canvas                          │
 │                                                         │  Skill 组合（工具编排）:                                   │
 │    generate_proposals = Agent 构思 + generate_image×N   │
 │    mv_planner     = Agent 构思（无需工具）               │
@@ -566,10 +586,10 @@ def agent_loop(user_message: str, state: AgentState) -> AgentReply:
 
 ### 关键原则
 
-1. **原子工具 = Agent 做不了的事**——生成像素、分析音频、质检、搜索。文字/推理/规划是 Agent 本身能力，不是工具。
+1. **原子工具 = Agent 做不了的事**——生成像素、分析音频、质检、搜索、音视频处理（ffmpeg）。文字/推理/规划是 Agent 本身能力，不是工具。
 2. **Skill = 原子工具 + Agent 内部能力的编排**。generate_proposals 中，构思是 Agent 做的，生成图片是调工具。
 3. **画布读取是 State 查询**，不是工具。Agent 读 State 中的结构化数据。用户上传的资产通过 get_asset 获取 URL。
-4. **push_to_canvas 是唯一的"前端工具"**——Agent 产生数据后必须通过它同步到画布。
+4. **push_to_canvas 是唯一的前端工具**，**run_ffmpeg 是唯一的系统级工具**——Agent 产生数据后通过前者同步画布，需要音视频处理时通过后者调用 ffmpeg。
 5. **对话回复格式不是工具**，是 Agent 选择的消息呈现方式。
 6. **流程阶段是进度提示**，不是准入条件。
 
@@ -594,6 +614,7 @@ def agent_loop(user_message: str, state: AgentState) -> AgentReply:
 | generate_video | — | 最后一步 | "重新生成 Shot3" | 链式尾 |
 | evaluate_quality | "质量怎么样" | 生成后自动调用 | — | — |
 | web_search | "搜索王家卫 MV" | 方案生成前补充 | — | — |
+| run_ffmpeg | — | 音频预处理/视频拼接/导出 | — | 导出成片 |
 | get_asset | — | 读已有资产作为上下文 | 读被修改的目标 | 读前置资产 |
 | push_to_canvas | 每次工具调用后 | 每次工具调用后 | 每次修改后 | 每次视频完成后 |
 
