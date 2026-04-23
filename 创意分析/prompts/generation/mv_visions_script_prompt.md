@@ -82,7 +82,7 @@ Raw JSON only — opening `{` to closing `}`, nothing else.
           "name": "Scene Name",
           "description": [
             "{country or explicit location if available} + environment + the physical rule that makes this world different",
-            "rendering prompt seed: 光线 / 色调 / 材质 / 动态 / 变化方向 / 现实系数"
+            "rendering prompt seed: {光线/Light/光源/광원} / {色调/Palette/色調/색조} / {材质/Material/材質/재질} / {动态/Motion/動/동작} / {变化方向/Arc/変化方向/변화방향} / {现实系数/Reality/現実系数/현실계수}"
           ]
         }
       ]
@@ -317,14 +317,12 @@ Allocation follows Section 5.3 — directional sequencing default; once left, do
 Each item: `index` (int from 1), `name` (short atmospheric label, concise phrase native to the output language), `description` (exactly 2 strings):
 - `[0]`: **`realistic-anchor` scenes** — geographic location + indoor/outdoor + spatial enclosure + vertical feel + dominant light direction. **`stylized-surreal` / `full-fantasy` scenes** — describe physical construction directly: material composition + spatial scale + light source type + the specific physical rule that differs from reality.
 - `[1]`: rendering prompt seed — exactly 6 fields in order:
-  - **光线** / **Light**: source type + direction + color temperature + intensity
-  - **色调** / **Palette**: 2–3 dominant colors and their distribution
-  - **材质** / **Material**: primary and secondary surface textures
-  - **动态** / **Motion**: environmental force or physics rule driving change (distinct from character action)
-  - **变化方向** / **Arc**: how space evolves across the MV — write as `初始态 → 终态`
-  - **现实系数** / **Reality**: `realistic-anchor` / `stylized-surreal` / `full-fantasy`
+  - `zh`: 光线 (source type + direction + color temperature + intensity) / 色调 (2–3 dominant colors) / 材质 (primary and secondary textures) / 动态 (environmental force/physics rule) / 变化方向 (how space evolves — write as `初始态 → 终态`) / 现实系数 (`realistic-anchor` / `stylized-surreal` / `full-fantasy`)
+  - `en`: Light / Palette / Material / Motion / Arc (write as `initial state → final state`) / Reality (same field definitions)
+  - `ja`: 光源 / 色調 / 材質 / 動 / 変化方向 (`初期状態 → 最終状態`) / 現実系数 (same field definitions)
+  - `ko`: 광원 / 색조 / 재질 / 동작 / 변화방향 (`초기 상태 → 최종 상태`) / 현실계수 (same field definitions)
 
-**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Example: `现实系数-full-fantasy`, never `现实系数：full-fantasy`. This applies to all 6 fields in the seed.
+**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Field names are language-specific per the mapping above — e.g., `Reality-full-fantasy` for `en`, `現実系数-full-fantasy` for `ja`, never `现实系数：full-fantasy`. This applies to all 6 fields in the seed.
 
 At least 1 scene must be `realistic-anchor` (unless Section 5.3 user override applies). All 6 fields required.
 
@@ -383,7 +381,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "白水悬境",
           "description": [
             "室内幻境 — 巨大纯白封闭空间，地面覆浅层静水；重力倒置，物体和人体朝向水面方向下坠，裙摆和头发向上飘动；四壁不可见，光源均匀无方向。",
-            "光线：均匀无方向漫射白光，5500K，低强度无阴影；色调：纯白、浅银、珠母光泽；材质：丝绸（悬浮物）、静水镜面（地面）；动态：倒置重力使纤维向上脱落飘散，水面因踩踏产生涟漪；变化方向：完整白裙悬浮（Intro）→ 墨色侵染水面、丝线残骸飘散（Outro）；现实系数-full-fantasy"
+            "光线-均匀无方向漫射白光，5500K，低强度无阴影；色调-纯白、浅银、珠母光泽；材质-丝绸（悬浮物）、静水镜面（地面）；动态-倒置重力使纤维向上脱落飘散，水面因踩踏产生涟漪；变化方向-完整白裙悬浮（Intro）→ 墨色侵染水面、丝线残骸飘散（Outro）；现实系数-full-fantasy"
           ]
         },
         {
@@ -391,7 +389,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "空巷·入夜",
           "description": [
             "中国 — 室外，中国南方老城窄巷；两侧楼墙高耸形成压迫廊道，地面潮湿；路灯从头顶单点垂落，重力正常。",
-            "光线：单点路灯顶光，2800K暖黄，中强度聚光向下；色调：深蓝黑、潮湿石灰白、路灯暖黄晕；材质：潮湿青石板路面、粉化旧墙、铁质路灯；动态：窗格灯光依次亮灭，远端雨水沿墙缓慢渗流；变化方向：路灯光晕完整（入场）→ 脚边光线收窄消失（离场）；现实系数-realistic-anchor"
+            "光线-单点路灯顶光，2800K暖黄，中强度聚光向下；色调-深蓝黑、潮湿石灰白、路灯暖黄晕；材质-潮湿青石板路面、粉化旧墙、铁质路灯；动态-窗格灯光依次亮灭，远端雨水沿墙缓慢渗流；变化方向-路灯光晕完整（入场）→ 脚边光线收窄消失（离场）；现实系数-realistic-anchor"
           ]
         },
         {
@@ -399,7 +397,7 @@ Verify all items; repair and re-verify any that fail.
           "name": "墨水深渊",
           "description": [
             "室内幻境 — 同一纯白空间，地面水体已被墨色全面侵染；重力已恢复正常，人站在水面上不下沉；白色空间上半与黑色水面下半形成强烈水平割裂。",
-            "光线：同源漫射光被墨面大量吸收，亮度降至初始态30%；色调：消退白、深墨黑、水面残留银光；材质：墨染水面（承重不下陷）、残余丝绸骨架（空中）；动态：墨色从指尖接触点向外漫延，丝线残骸在正常重力下缓慢坠落；变化方向：墨色从边缘向中心汇聚（Outro开场）→ 最后白色倒影淹没（结尾帧）；现实系数-stylized-surreal"
+            "光线-同源漫射光被墨面大量吸收，亮度降至初始态30%；色调-消退白、深墨黑、水面残留银光；材质-墨染水面（承重不下陷）、残余丝绸骨架（空中）；动态-墨色从指尖接触点向外漫延，丝线残骸在正常重力下缓慢坠落；变化方向-墨色从边缘向中心汇聚（Outro开场）→ 最后白色倒影淹没（结尾帧）；现实系数-stylized-surreal"
           ]
         }
       ]

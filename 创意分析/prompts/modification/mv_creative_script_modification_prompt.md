@@ -31,7 +31,7 @@ Reply with one valid JSON object only. No Markdown fences, no explanation, no ex
           "name": "Scene Name",
           "description": [
             "environment + atmosphere",
-            "story or emotional function"
+            "rendering prompt seed: {光线/Light/光源/광원} / {色调/Palette/色調/색조} / {材质/Material/材質/재질} / {动态/Motion/動/동작} / {现实系数/Reality/現実系数/현실계수}"
           ]
         }
       ]
@@ -189,7 +189,10 @@ Count exact name matches in the final `场景` column.
 - **Exception:** if all scenes appear exactly once, output all with no limit
 - If a scene drops from ≥ 2 to 1, remove from array; if it rises from 1 to ≥ 2, add to array
 - **Inherit** existing `description` from `ori_mv_guide.mv_elements.scenes` unless renamed or user requests a change
-- **New scenes:** generate 2-point description (environment + atmosphere; story or emotional function)
+- **New scenes:** generate 2-point description — `[0]` environment + atmosphere; `[1]` rendering prompt seed. **Seed field names follow `language_code`**:
+  - `story_mode` (5 fields): `zh`→光线/色调/材质/动态/现实系数 | `en`→Light/Palette/Material/Motion/Reality | `ja`→光源/色調/材質/動/現実系数 | `ko`→광원/색조/재질/동작/현실계수
+  - `visions` (6 fields, add 变化方向): same mapping, plus `zh`→变化方向 | `en`→Arc | `ja`→変化方向 | `ko`→변화방향
+  - **Separator rule**: use hyphen `-` between field name and value (e.g., `Reality-stylized-realistic` for `en`). Values follow `language_code` except Reality enum which stays in English.
 - `name`: 2–4 character atmospheric label in output language
 
 ---

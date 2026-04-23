@@ -207,7 +207,7 @@ Build from the final `md_stages` `场景` column. Count exact name matches.
 - **Exception**: if all scenes appear exactly once, output all with no count limit
 - **one_take**: output the single scene directly regardless of count
 - **Inherit**: keep existing `description` from `ori_mv_guide.mv_elements.scenes` unless renamed or user explicitly requests change
-- **New scenes**: generate 2-point description (environment + atmosphere; performance and emotional function)
+- **New scenes**: generate 2-point description (environment + atmosphere; performance and emotional function). Both description strings must follow `language_code` for output language.
 - **Removed scenes**: drop from array
 - `name`: 2–4 character atmospheric label in output language
 

@@ -61,15 +61,248 @@ body {
 .ic-sm svg { width: 12px; height: 12px; }
 .ic-lg svg { width: 18px; height: 18px; }
 
-/* ═══ TOOLBAR ═══ */
-.toolbar {
-  height: 48px; background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
+/* ═══ TOP BAR ═══ */
+.topbar {
   display: flex; align-items: center;
-  gap: var(--s2); padding: 0 var(--s4);
-  flex-shrink: 0; z-index: 100;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; z-index: 100; height: 52px;
 }
-.t-div { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; margin: 0 var(--s1); }
+.topbar-brand {
+  width: 300px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 var(--s4);
+}
+.topbar-logo {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--text-hi); color: var(--bg-surface);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-body); font-weight: 700; font-size: 13px;
+}
+.topbar-info { line-height: 1.2; }
+.topbar-title { font-size: 0.8125rem; font-weight: 600; color: var(--text-hi); }
+.topbar-sub { font-size: 0.6875rem; color: var(--text-lo); margin-top: 1px; }
+
+/* Browser-style tab */
+.topbar-tab-row { display: flex; align-items: flex-end; gap: 0; }
+.topbar-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 14px 8px;
+  border: 1px solid var(--border); border-bottom: none;
+  border-radius: 7px 7px 0 0;
+  background: var(--bg); color: var(--text-hi);
+  font-size: 0.75rem; font-weight: 500; font-family: var(--f-body);
+  cursor: default; margin-bottom: -1px;
+}
+.topbar-tab svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.topbar-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 var(--s4); }
+
+/* Export button in topbar */
+.tb-export {
+  display: flex; align-items: center; gap: var(--s1);
+  height: 30px; padding: 0 var(--s3);
+  border: 1px solid var(--border); background: var(--bg-surface);
+  color: var(--text-mid); border-radius: var(--r);
+  cursor: pointer; font-size: 0.8125rem;
+  font-family: var(--f-body); font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.tb-export:hover { background: var(--bg-raised); border-color: var(--border-firm); color: var(--text-hi); }
+.tb-export svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* User avatar in topbar */
+.topbar-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--acc); color: white;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 600; font-family: var(--f-body);
+  flex-shrink: 0; cursor: pointer;
+  transition: opacity 0.1s;
+}
+.topbar-avatar:hover { opacity: 0.85; }
+
+/* ═══ MAIN LAYOUT ═══ */
+.main-layout {
+  display: flex; flex: 1; overflow: hidden; min-height: 0;
+  padding: 8px 6px 6px 6px; gap: 4px;
+  background: var(--bg);
+}
+.chat-panel {
+  width: 360px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--sh-sm);
+}
+.editor-area {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+  overflow: hidden; min-width: 0;
+}
+.editor-top {
+  flex: 7; display: flex; gap: 4px; min-height: 0;
+}
+.editor-bottom {
+  flex: 3; display: flex; flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--sh-sm);
+  min-height: 0;
+}
+
+/* ═══ CHAT PANEL ═══ */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 20px 16px 10px;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.chat-msg { display: flex; gap: 12px; margin-bottom: 20px; }
+.chat-msg.user { flex-direction: row-reverse; }
+.chat-avatar {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; color: var(--bg-surface);
+}
+.chat-avatar.ai { background: var(--text-hi); border-radius: 6px; }
+.chat-avatar.user-avatar { background: var(--acc); border-radius: 50%; }
+.chat-bubble-wrap { max-width: 88%; display: flex; flex-direction: column; gap: 6px; }
+.chat-msg:not(.user) .chat-bubble-wrap { align-items: flex-start; }
+.chat-msg.user .chat-bubble-wrap { align-items: flex-end; }
+.chat-name { font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 2px; }
+.chat-bubble {
+  padding: 10px 14px; border-radius: 14px;
+  font-size: 13.5px; line-height: 1.65; white-space: pre-wrap;
+}
+.chat-bubble.user-bubble {
+  background: var(--text-hi);
+  color: var(--bg-surface);
+  border-radius: 14px 14px 4px 14px;
+}
+.chat-bubble.ai-bubble {
+  background: transparent; border: none;
+  color: var(--text-hi); padding: 4px 0;
+}
+.chat-bubble.ai-bubble p { margin: 0; }
+.chat-bubble.ai-bubble ul, .chat-bubble.ai-bubble ol { margin: 6px 0; padding-left: 20px; }
+.chat-bubble.ai-bubble li { margin: 3px 0; font-size: 13px; line-height: 1.6; color: var(--text-mid); }
+.chat-bubble.ai-bubble li strong { color: var(--text-hi); font-weight: 600; }
+
+/* Rich content card inside AI messages */
+.chat-card {
+  width: 100%; background: var(--bg-raised);
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden;
+}
+.chat-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; cursor: pointer;
+}
+.chat-card-header:hover { background: var(--bg-hover); }
+.chat-card-header-left { display: flex; align-items: center; gap: 8px; }
+.chat-card-icon { width: 18px; height: 18px; color: var(--acc); }
+.chat-card-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chat-card-title { font-size: 13px; font-weight: 600; color: var(--text-hi); }
+.chat-card-badge { font-size: 11px; color: var(--text-lo); font-weight: 500; }
+.chat-card-arrow { color: var(--text-lo); }
+.chat-card-arrow svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Option cards */
+.chat-options-card {
+  width: 100%; background: var(--bg-raised);
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; margin-top: 4px;
+}
+.chat-options-title { padding: 12px 14px 8px; font-size: 12.5px; font-weight: 600; color: var(--text-hi); }
+.chat-option-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; cursor: pointer;
+  transition: background 0.1s;
+}
+.chat-option-item:hover { background: var(--bg-hover); }
+.chat-option-check {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--border-firm); flex-shrink: 0;
+  margin-top: 1px; display: flex; align-items: center; justify-content: center;
+}
+.chat-option-item.selected .chat-option-check {
+  border-color: var(--acc); background: var(--acc);
+}
+.chat-option-item.selected .chat-option-check::after {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: white;
+}
+.chat-option-text { flex: 1; }
+.chat-option-label { font-size: 12.5px; font-weight: 600; color: var(--text-hi); }
+.chat-option-desc { font-size: 11.5px; color: var(--text-lo); line-height: 1.5; margin-top: 2px; }
+.chat-option-input {
+  margin: 6px 14px 10px; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg-surface); font-size: 12px; color: var(--text-hi);
+  font-family: var(--f-body); outline: none; width: calc(100% - 28px);
+}
+.chat-option-input::placeholder { color: var(--text-dim); }
+.chat-option-input:focus { border-color: var(--acc); }
+
+.chat-send-row {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 6px 14px 8px;
+}
+.chat-send-small {
+  height: 28px; padding: 0 16px; border-radius: 14px;
+  background: var(--acc); color: white; border: none;
+  font-size: 12px; font-weight: 500; font-family: var(--f-body);
+  cursor: pointer; transition: background 0.1s;
+}
+.chat-send-small:hover { background: var(--acc-hover); }
+
+.chat-input-area {
+  padding: 8px 6px 6px; flex-shrink: 0;
+  background: var(--bg-surface);
+}
+.chat-input-box {
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 10px 10px 8px;
+}
+.chat-input-box textarea {
+  width: 100%; border: none; outline: none; resize: none;
+  font-family: var(--f-body); font-size: 13.5px; color: var(--text-hi);
+  background: transparent; padding: 4px 4px 6px;
+}
+.chat-input-box textarea::placeholder { color: var(--text-dim); }
+.chat-input-bar { display: flex; align-items: center; gap: 6px; }
+.chat-icon-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-lo);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+.chat-icon-btn:hover { background: var(--bg-hover); color: var(--text-mid); }
+.chat-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chat-tag {
+  font-size: 11.5px; color: var(--text-lo);
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); padding: 3px 8px; border-radius: 999px;
+}
+.chat-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--acc); }
+.chat-send-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--text-hi); color: var(--bg-surface); border: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; margin-left: auto;
+  transition: background 0.1s;
+}
+.chat-send-btn:hover { background: oklch(0.28 0.004 50); }
+.chat-send-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chat-hint { font-size: 10.5px; color: var(--text-dim); margin-top: 8px; text-align: center; }
+
+.topbar-tab svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Shared button styles (used in playback, timeline) */
 .ib {
   display: flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border: none; background: transparent;
@@ -92,15 +325,21 @@ body {
 .tb.primary { background: var(--acc); border-color: transparent; color: white; }
 .tb.primary:hover { background: var(--acc-hover); }
 .tb svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.t-div { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; margin: 0 var(--s1); }
+.tb.primary { background: var(--acc); border-color: transparent; color: white; }
+.tb.primary:hover { background: var(--acc-hover); }
+.tb svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ═══ TOP HALF ═══ */
-.top-half { display: flex; flex: 7; overflow: hidden; min-height: 0; }
+.top-half { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 .media-panel {
   width: 30%; min-width: 220px; flex: 0 0 30%;
   background: var(--bg-surface);
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
   display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: var(--sh-sm);
 }
 .p-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 var(--s2); gap: 1px; }
 .p-tab {
@@ -144,7 +383,13 @@ body {
 .mi-empty { grid-column: 1/-1; padding: var(--s5) var(--s3); text-align: center; color: var(--text-dim); font-size: 0.75rem; }
 
 /* ── PREVIEW ── */
-.preview-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: var(--s4) var(--s5); background: var(--bg); min-height: 0; }
+.preview-wrap {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: var(--s4) var(--s5); background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  min-height: 0; position: relative;
+  box-shadow: var(--sh-sm);
+}
 .preview-inner { display: flex; flex-direction: column; align-items: center; gap: var(--s3); height: 100%; max-height: 100%; width: 100%; max-width: 700px; }
 .video-stage { background: oklch(0.090 0.002 50); border-radius: var(--r-lg); overflow: hidden; position: relative; flex: 1; min-height: 0; aspect-ratio: 16/9; width: auto; max-width: 100%; align-self: center; box-shadow: 0 8px 36px oklch(0.09 0.002 50 / 0.38), 0 2px 8px oklch(0.09 0.002 50 / 0.22); }
 .video-frame { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(162deg, oklch(0.12 0.004 50) 0%, oklch(0.07 0.002 50) 100%); position: relative; transition: background 0.8s ease; }
@@ -183,7 +428,7 @@ body {
 .speed-btn { font-family: var(--f-body); font-size: 0.75rem; font-weight: 500; color: var(--text-lo); }
 
 /* ═══ BOTTOM HALF ═══ */
-.bottom-half { display: flex; flex-direction: column; flex: 3; background: var(--bg-surface); border-top: 1px solid var(--border); }
+.bottom-half { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
 .tl-bar { height: 40px; background: var(--bg-surface); border-bottom: 1px solid var(--border-faint); display: flex; align-items: center; gap: var(--s1); padding: 0 var(--s3); flex-shrink: 0; }
 .tlb {
   display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 var(--s2);
@@ -267,6 +512,8 @@ body {
 
 @keyframes pop-in { from { opacity: 0; transform: translateY(5px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 0.3 } 50% { opacity: 1 } }
+.dot-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--text-lo); margin-right: 6px; animation: pulse 1.2s ease-in-out infinite; vertical-align: middle; }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -276,20 +523,148 @@ body {
 </head>
 <body>
 
-<!-- ═══ TOOLBAR ═══ -->
-<header class="toolbar">
-  <button class="ib" title="返回" onclick="history.back()" style="margin-right:var(--s2)">
-    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
-  <div class="t-div"></div>
-  <div style="flex:1"></div>
-  <button class="tb primary" onclick="exportProject()">
-    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    导出成片
-  </button>
+<!-- ═══ TOP BAR ═══ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">T</div>
+    <div class="topbar-info">
+      <div class="topbar-title">MV 工作台</div>
+      <div class="topbar-sub">视频剪辑器 · 自动保存中</div>
+    </div>
+  </div>
+  <div class="topbar-tab-row">
+    <div class="topbar-tab">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+      视频剪辑器
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="tb-export" onclick="exportProject()" title="导出成片">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      导出成片
+    </button>
+    <div class="topbar-avatar" title="用户">Y</div>
+  </div>
 </header>
 
+<!-- ═══ MAIN LAYOUT ═══ -->
+<div class="main-layout">
+  <!-- Chat Panel -->
+  <aside class="chat-panel">
+    <div class="chat-messages" id="chatMessages">
+      <!-- Tunee greeting -->
+      <div class="chat-msg">
+        <div class="chat-avatar ai">
+          <span style="font-size:9px;font-weight:800;">T</span>
+        </div>
+        <div class="chat-bubble-wrap">
+          <div class="chat-name">Tunee</div>
+          <div class="chat-bubble ai-bubble">你好！我是 Tunee 视频助手。请描述你想制作的 MV，或者让我帮你优化已有的分镜方案。</div>
+        </div>
+      </div>
+      <!-- User message -->
+      <div class="chat-msg user">
+        <div class="chat-avatar user-avatar">Y</div>
+        <div class="chat-bubble-wrap">
+          <div class="chat-bubble user-bubble">帮我做一首城市夜景主题的 MV，风格偏梦幻</div>
+        </div>
+      </div>
+      <!-- Tunee reply with rich card -->
+      <div class="chat-msg">
+        <div class="chat-avatar ai">
+          <span style="font-size:9px;font-weight:800;">T</span>
+        </div>
+        <div class="chat-bubble-wrap">
+          <div class="chat-name">Tunee</div>
+          <div class="chat-bubble ai-bubble">好的！已为你生成城市夜景 MV 分镜方案，这次对三个核心奇观镜头进行了全面升级：</div>
+          <div class="chat-card">
+            <div class="chat-card-header">
+              <div class="chat-card-header-left">
+                <span class="chat-card-icon">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </span>
+                <span class="chat-card-title">故事板</span>
+                <span class="chat-card-badge">已更新</span>
+              </div>
+              <span class="chat-card-arrow">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tunee follow-up with option cards -->
+      <div class="chat-msg">
+        <div class="chat-avatar ai">
+          <span style="font-size:9px;font-weight:800;">T</span>
+        </div>
+        <div class="chat-bubble-wrap">
+          <div class="chat-name">Tunee</div>
+          <div class="chat-bubble ai-bubble">当前分镜中有以下四个镜头，您想调整哪个镜头的哪些内容？</div>
+          <div class="chat-options-card">
+            <div class="chat-options-title">您想调整哪个镜头？</div>
+            <div class="chat-option-item" onclick="selectOption(this)">
+              <div class="chat-option-check"></div>
+              <div class="chat-option-text">
+                <div class="chat-option-label">调整「Intro · 城市航拍」镜头</div>
+                <div class="chat-option-desc">修改夜景航拍的场景细节、光线氛围或与音乐节拍的对应关系</div>
+              </div>
+            </div>
+            <div class="chat-option-item" onclick="selectOption(this)">
+              <div class="chat-option-check"></div>
+              <div class="chat-option-text">
+                <div class="chat-option-label">调整「Verse 1 · 霓虹街道」镜头</div>
+                <div class="chat-option-desc">修改雨后街道的霓虹反射、镜头运动幅度或色彩风格</div>
+              </div>
+            </div>
+            <div class="chat-option-item" onclick="selectOption(this)">
+              <div class="chat-option-check"></div>
+              <div class="chat-option-text">
+                <div class="chat-option-label">调整「Chorus · 天际线」镜头</div>
+                <div class="chat-option-desc">修改天际线全景的构图、晨雾效果或与高潮段落的对齐</div>
+              </div>
+            </div>
+            <div class="chat-option-item" onclick="selectOption(this)">
+              <div class="chat-option-check"></div>
+              <div class="chat-option-text">
+                <div class="chat-option-label">调整「Outro · 城市夜景」镜头</div>
+                <div class="chat-option-desc">修改收尾镜头的运动方式、光线变化或余韵时长</div>
+              </div>
+            </div>
+            <input class="chat-option-input" placeholder="其他…" />
+            <div class="chat-send-row">
+              <button class="chat-send-small">发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-box">
+        <textarea id="chatInput" placeholder="描述你的 MV，或者让 Tunee 继续发挥…" rows="2"></textarea>
+        <div class="chat-input-bar">
+          <button class="chat-icon-btn" title="附件">
+            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button class="chat-icon-btn" title="工具">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <span class="chat-tag">
+            <span class="chat-tag-dot"></span>
+            Tunee MV · Pro
+          </span>
+          <button class="chat-send-btn" onclick="sendChat()">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Editor area -->
+  <div class="editor-area">
 <!-- ═══ TOP HALF ═══ -->
+<div class="editor-top">
 <div class="top-half">
   <aside class="media-panel">
     <div class="p-tabs" id="pTabs">
@@ -357,8 +732,11 @@ body {
     </div>
   </main>
 </div>
+</div>
+<!-- end top-half, editor-top -->
 
 <!-- ═══ BOTTOM HALF ═══ -->
+<div class="editor-bottom">
 <div class="bottom-half">
   <div class="tl-bar">
     <button class="tlb" onclick="deleteSelected()">
@@ -403,6 +781,12 @@ body {
     </div>
   </div>
 </div>
+</div>
+<!-- end bottom-half, editor-bottom -->
+</div>
+<!-- end editor-area -->
+</div>
+<!-- end main-layout -->
 
 <!-- Volume Popover -->
 <div class="po-overlay" id="volOv" onclick="closeVol()">
@@ -901,10 +1285,42 @@ function exportProject() {
   t.textContent = '导出功能开发中…'; document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
 }
 
+/* ── Chat ── */
+function selectOption(el) {
+  el.classList.toggle('selected');
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const msgs = document.getElementById('chatMessages');
+  // User message
+  msgs.insertAdjacentHTML('beforeend',
+    `<div class="chat-msg user"><div class="chat-avatar user-avatar">Y</div><div class="chat-bubble-wrap"><div class="chat-bubble user-bubble">${text}</div></div></div>`
+  );
+  input.value = '';
+  // Tunee thinking
+  msgs.insertAdjacentHTML('beforeend',
+    `<div class="chat-msg" id="thinkingMsg"><div class="chat-avatar ai">T</div><div class="chat-bubble-wrap"><div class="chat-name">Tunee</div><div class="chat-bubble ai-bubble"><span class="dot-pulse"></span> 正在思考中…</div></div></div>`
+  );
+  msgs.scrollTop = msgs.scrollHeight;
+  // Simulate response after delay
+  setTimeout(() => {
+    const thinking = document.getElementById('thinkingMsg');
+    if (thinking) {
+      thinking.querySelector('.chat-bubble').innerHTML = '收到！正在为你处理中…';
+      thinking.removeAttribute('id');
+    }
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 2000);
+}
+
 /* ── Helpers ── */
 function fmtT(sec) { const s = Math.floor(sec), m = Math.floor(s / 60); return `${String(m).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`; }
 
 document.addEventListener('keydown', e => {
+  if (e.target.id === 'chatInput' && e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); return; }
   if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   if (e.code === 'Delete' || e.code === 'Backspace') { if (S.sel) deleteSelected(); }

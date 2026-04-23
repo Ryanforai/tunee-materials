@@ -31,7 +31,7 @@ Reply with one valid JSON object only. No Markdown fences, no explanation, no ex
           "name": "Scene Name",
           "description": [
             "{country or explicit location if available} + environment + atmosphere",
-            "rendering prompt seed: 光线 / 色调 / 材质 / 动态 / 现实系数"
+            "rendering prompt seed: {光线/Light/光源/광원} / {色调/Palette/色調/색조} / {材质/Material/材質/재질} / {动态/Motion/動/동작} / {现实系数/Reality/現実系数/현실계수}"
           ]
         }
       ]
@@ -188,7 +188,7 @@ Count exact name matches in the final 场景 column.
 - **Exception:** if all scenes appear exactly once, include all
 - If a scene drops from ≥ 2 to 1, remove from array; if it rises from 1 to ≥ 2, add to array
 - **Inherit** existing `description` from `ori_mv_guide.mv_elements.scenes` unless renamed or user requests a change
-- **New scenes:** must exist in the Scene Library unless user explicitly introduces a new one; derive `description` from Scene Library entry and Visual Style Summary; format: exactly 2 strings — `[0]` geographic location + indoor/outdoor + spatial enclosure + vertical feel + dominant light direction; `[1]` rendering prompt seed with exactly 5 fields: 光线 / 色调 / 材质 / 动态 / 现实系数 (`realistic` / `stylized-realistic` / `heightened-reality` only)
+- **New scenes:** must exist in the Scene Library unless user explicitly introduces a new one; derive `description` from Scene Library entry and Visual Style Summary; format: exactly 2 strings — `[0]` geographic location + indoor/outdoor + spatial enclosure + vertical feel + dominant light direction; `[1]` rendering prompt seed with exactly 5 fields. **Seed field names follow `language_code`**: `zh`→光线/色调/材质/动态/现实系数 | `en`→Light/Palette/Material/Motion/Reality | `ja`→光源/色調/材質/動/現実系数 | `ko`→광원/색조/재질/동작/현실계수. **Separator rule**: use hyphen `-` between field name and value (e.g., `Reality-heightened-reality` for `en`, `現実系数-heightened-reality` for `ja`). Reality enum stays in English; other values follow `language_code`.
 - `name`: short atmospheric label in output language, closely derived from the reference MV's scene code
 
 ### Style Guide

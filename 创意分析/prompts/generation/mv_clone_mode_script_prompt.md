@@ -79,7 +79,7 @@ Raw JSON only — opening `{` to closing `}`, nothing else.
           "name": "Scene Name",
           "description": [
             "{country or explicit location if available} + environment + atmosphere",
-            "rendering prompt seed: 光线 / 色调 / 材质 / 动态 / 现实系数"
+            "rendering prompt seed: {光线/Light/光源/광원} / {色调/Palette/色調/색조} / {材质/Material/材質/재질} / {动态/Motion/動/동작} / {现实系数/Reality/現実系数/현실계수}"
           ]
         }
       ]
@@ -266,13 +266,12 @@ Draw primarily from the Scene Library. Assign scene names in parallel with `md_s
 Each item: `index` (int from 1), `name` (short atmospheric label matching or closely derived from the reference MV's scene codes, in the output language), `description` (exactly 2 strings):
 - `[0]`: geographic location + indoor/outdoor + spatial enclosure + vertical feel + dominant light direction — derived from the reference MV's scene descriptions and Visual Style Summary
 - `[1]`: rendering prompt seed — exactly 5 fields in order, all derived from Visual Style Summary and scene descriptions:
-  - **光线** / **Light**: direction + color temperature + intensity
-  - **色调** / **Palette**: 2–3 dominant colors consistent with the reference MV's color world
-  - **材质** / **Material**: primary surface texture(s) from the reference MV's material vocabulary
-  - **动态** / **Motion**: ambient environmental motion (or "静止" if none)
-  - **现实系数** / **Reality**: `realistic` / `stylized-realistic` / `heightened-reality` only — derived from the reference MV's visual style; `surreal` and `fantasy` are forbidden
+  - `zh`: 光线 (direction + color temperature + intensity) / 色调 (2–3 dominant colors) / 材质 (primary surface texture(s)) / 动态 (ambient environmental motion or "静止" if none) / 现实系数 (`realistic` / `stylized-realistic` / `heightened-reality` only — `surreal` and `fantasy` are forbidden)
+  - `en`: Light / Palette / Material / Motion / Reality (same field definitions)
+  - `ja`: 光源 / 色調 / 材質 / 動 / 現実系数 (same field definitions)
+  - `ko`: 광원 / 색조 / 재질 / 동작 / 현실계수 (same field definitions)
 
-**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Example: `现实系数-heightened-reality`, never `现实系数：heightened-reality`. This applies to all 5 fields in the seed.
+**Rendering prompt seed separator rule:** within `description[1]`, use hyphen `-` (NOT `:` or `：`) between each field name and its value. Field names are language-specific per the mapping above — e.g., `Reality-heightened-reality` for `en`, `現実系数-heightened-reality` for `ja`, never `现实系数：heightened-reality`. This applies to all fields in the seed.
 
 ### Style Guide
 2–4 sentences. Rendering style and character visual presence — line quality, color treatment, aesthetic impression. No clothing or accessories. Multiple characters: describe each by name.

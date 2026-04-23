@@ -193,8 +193,8 @@ Build from the final `md_stages` Scene column. Count exact name matches.
 - **Exception**: if all scenes appear exactly once, output all of them with no count limit
 - **one_take**: exactly one row exists, so exactly one scene; output it directly
 - `name`: short atmospheric label (concise phrase native to the output language), in output language (follows `language_code`)
-- `description[0]`: environment + atmosphere of the performance space
-- `description[1]`: performance and emotional function in the MV
+- `description[0]`: environment + atmosphere of the performance space (follows `language_code`)
+- `description[1]`: performance and emotional function in the MV (follows `language_code`)
 
 ### 5.3 Style Guide
 
