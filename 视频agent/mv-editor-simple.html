@@ -410,6 +410,16 @@ body {
 .tf-desc { font-family: var(--f-body); font-size: 1rem; line-height: 1.75; color: oklch(1 0 0 / 0.85); max-width: 480px; }
 .tf-hint { font-family: var(--f-body); font-size: 0.6875rem; color: oklch(1 0 0 / 0.35); margin-top: var(--s5); }
 
+/* Subtitle overlay on video */
+.video-subtitle-overlay {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: oklch(0 0 0 / 0.65); color: oklch(1 0 0 / 0.95);
+  padding: 6px 16px; border-radius: 6px; font-size: 0.8125rem; font-weight: 500;
+  font-family: var(--f-body); white-space: nowrap; pointer-events: none;
+  transition: opacity 0.2s; max-width: 80%; text-align: center;
+  line-height: 1.5;
+}
+
 .playback-controls { width: 100%; display: flex; flex-direction: column; gap: var(--s2); }
 .prog-wrap { position: relative; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
 .prog-wrap:hover { height: 5px; }
@@ -439,6 +449,26 @@ body {
 .tlb:hover { background: var(--bg-hover); color: var(--text-mid); }
 .tlb svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .tl-sep { width: 1px; height: 16px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
+.tl-bar .tl-spacer { flex: 1; }
+
+/* Lyrics subtitle toggle */
+.subtitle-toggle {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto; font-size: 0.75rem; font-weight: 500;
+  color: var(--text-mid); font-family: var(--f-body); user-select: none;
+}
+.subtitle-toggle .toggle-track {
+  width: 32px; height: 18px; border-radius: 9px;
+  background: var(--border-firm); position: relative;
+  cursor: pointer; transition: background 0.15s;
+}
+.subtitle-toggle .toggle-track::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--bg-surface); transition: transform 0.15s;
+}
+.subtitle-toggle .toggle-track.on { background: var(--acc); }
+.subtitle-toggle .toggle-track.on::after { transform: translateX(14px); }
 
 .tl-wrap { flex: 1; display: flex; flex-direction: column; background: var(--tl-bg); overflow: hidden; }
 .tl-scroll { flex: 1; display: flex; overflow-x: auto; overflow-y: auto; position: relative; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
@@ -449,6 +479,7 @@ body {
 .tr-head::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; border-radius: 0 2px 2px 0; }
 .tr-head[data-track="v1"]::before { background: var(--text-hi); }
 .tr-head[data-track="au"]::before { background: var(--text-lo); }
+.tr-head[data-track="sub"]::before { background: var(--acc); }
 
 .tr-head-name { font-size: 0.6875rem; font-weight: 600; color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 
@@ -463,6 +494,7 @@ body {
 .ph-top { position: absolute; top: 0; left: -5px; width: 12px; height: 8px; background: var(--ph-color); clip-path: polygon(0 0, 100% 0, 50% 100%); }
 
 .tr-row { height: 48px; border-bottom: 1px solid var(--border-faint); position: relative; background: var(--tl-bg); flex-shrink: 0; }
+.tr-row.disabled { opacity: 0.35; pointer-events: none; }
 
 /* ═══ CLIPS ═══ */
 .clip { position: absolute; top: 5px; bottom: 5px; border-radius: var(--r); cursor: grab; overflow: hidden; user-select: none; transition: box-shadow 0.1s; }
@@ -477,6 +509,8 @@ body {
 .cv1 .clip-nm, .cv1 .clip-dur { color: var(--text-hi); }
 .cau { background: oklch(0.945 0.003 50); border: 1px solid oklch(0.850 0.004 50); }
 .cau .clip-nm, .cau .clip-dur { color: var(--text-hi); }
+.csub { background: oklch(0.935 0.008 48 / 0.5); border: 1px dashed oklch(0.830 0.010 48); }
+.csub .clip-nm, .csub .clip-dur { color: var(--text-acc); }
 
 .wave-canvas { position: absolute; inset: 0; opacity: 0.35; z-index: 0; pointer-events: none; }
 
@@ -699,6 +733,7 @@ body {
           <div class="storyboard-fallback" id="storyboardFallback" style="display:none">
             <div class="sb-image" id="sbImage"></div>
           </div>
+          <div class="video-subtitle-overlay" id="videoSubtitle" style="display:none"></div>
         </div>
         <div class="video-hover-play" onclick="togglePlay()">
           <div class="hover-play-ring" id="hoverRing">
@@ -756,6 +791,11 @@ body {
       <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       重做
     </button>
+    <span class="tl-spacer"></span>
+    <div class="subtitle-toggle" onclick="toggleSubtitles()">
+      <span>歌词字幕</span>
+      <div class="toggle-track on" id="subtitleTrack"></div>
+    </div>
   </div>
 
   <div class="tl-wrap">
@@ -768,6 +808,9 @@ body {
         <div class="tr-head" data-track="au">
           <div class="tr-head-name">音频轨</div>
         </div>
+        <div class="tr-head" data-track="sub">
+          <div class="tr-head-name">字幕轨</div>
+        </div>
       </div>
 
       <div class="tl-content" id="tlContent">
@@ -777,6 +820,7 @@ body {
         </div>
         <div class="tr-row" id="tr-v1"></div>
         <div class="tr-row" id="tr-au"></div>
+        <div class="tr-row" id="tr-sub"></div>
       </div>
     </div>
   </div>
@@ -821,6 +865,7 @@ const S = {
   type: 'video',
   volume: 0.5,
   speed: 1,
+  subtitleEnabled: true,
 };
 
 /* ── Undo / Redo ── */
@@ -944,6 +989,16 @@ const CLIPS = {
   'tr-au': [
     [0, 225, '无名之曲.mp3', 'cau', {}],
   ],
+  'tr-sub': [
+    [0,  12, '夜空中最亮的星，请照亮我',      'csub', {}],
+    [14,  8, '我站在霓虹深处，听城市呼吸',    'csub', {}],
+    [24,  6, '每一步都踏着光的轨迹',         'csub', {}],
+    [32,  5, '向着未知，我不回头',           'csub', {}],
+    [39, 10, '这是我们的夜晚，是燃烧的天空',   'csub', {}],
+    [51, 12, '回望的瞬间，万物静止',          'csub', {}],
+    [65,  8, '人海中你是我唯一的坐标',        'csub', {}],
+    [75,  6, '城市晚安，梦还在继续',          'csub', {}],
+  ],
 };
 
 function init() {
@@ -959,6 +1014,7 @@ function init() {
   setupScroll(); setupDropTargets();
   document.getElementById('tlContent').style.minWidth = (S.dur * S.zoom) + 'px';
   setTimeout(() => { const sc = document.getElementById('tlScroll'); sc.scrollLeft = S.t * S.zoom - 100; }, 60);
+  updateSubtitleOverlay();
 }
 
 function renderMedia() {
@@ -1050,6 +1106,9 @@ function renderClip(row, clip, id) {
     const cvs = document.createElement('canvas'); cvs.className = 'wave-canvas'; el.appendChild(cvs);
     el.innerHTML += `<div class="clip-inner"><div class="clip-nm">${label}</div><div class="clip-dur">${fmtT(dur)}</div></div>`;
     el.appendChild(makeHandles()); row.appendChild(el); drawWave(cvs, id);
+  } else if (cls === 'csub') {
+    el.innerHTML = `<div class="clip-inner"><div class="clip-nm">${label}</div><div class="clip-dur">${fmtT(dur)}</div></div>`;
+    el.appendChild(makeHandles()); row.appendChild(el);
   } else {
     el.innerHTML = `<div class="clip-inner"><div class="clip-nm">${label}</div><div class="clip-dur">${fmtT(dur)}</div></div>`;
     el.insertAdjacentHTML('afterbegin', makeFrameTicks(dur));
@@ -1136,6 +1195,44 @@ function onDragEnd() {
   document.removeEventListener('mouseup', onDragEnd);
 }
 
+/* ── Subtitle toggle ── */
+function toggleSubtitles() {
+  S.subtitleEnabled = !S.subtitleEnabled;
+  const track = document.getElementById('subtitleTrack');
+  const subRow = document.getElementById('tr-sub');
+  const subOverlay = document.getElementById('videoSubtitle');
+  track.classList.toggle('on', S.subtitleEnabled);
+  subRow.classList.toggle('disabled', !S.subtitleEnabled);
+  if (!S.subtitleEnabled) {
+    subOverlay.style.display = 'none';
+    subRow.innerHTML = '';
+  } else {
+    renderSubtitleClips();
+    updateSubtitleOverlay();
+  }
+}
+
+function renderSubtitleClips() {
+  const row = document.getElementById('tr-sub');
+  row.innerHTML = '';
+  (CLIPS['tr-sub'] || []).forEach((c, i) => renderClip(row, c, 'tr-sub_' + i));
+}
+
+function findSubtitleAtTime(time) {
+  for (const [start, dur, text] of (CLIPS['tr-sub'] || [])) {
+    if (time >= start && time < start + dur) return text;
+  }
+  return '';
+}
+
+function updateSubtitleOverlay() {
+  if (!S.subtitleEnabled) return;
+  const overlay = document.getElementById('videoSubtitle');
+  const text = findSubtitleAtTime(S.t);
+  if (text) { overlay.textContent = text; overlay.style.display = 'block'; }
+  else { overlay.style.display = 'none'; }
+}
+
 /* ── Actions ── */
 function deleteSelected() {
   if (!S.sel) return;
@@ -1156,7 +1253,17 @@ function splitAtPlayhead() {
       break;
     }
   }
-  if (!split) return;
+  // Also split subtitle clips
+  const subs = CLIPS['tr-sub'] || [];
+  for (let i = 0; i < subs.length; i++) {
+    const [start, dur, text, cls, opts] = subs[i];
+    if (t > start && t < start + dur) {
+      subs[i] = [start, t - start, text, cls, opts];
+      subs.splice(i + 1, 0, [t, start + dur - t, text, cls, opts]);
+      break;
+    }
+  }
+  if (!split && subs.length === 0) return;
   pushHistory();
   renderAllClips();
 }
@@ -1237,7 +1344,7 @@ function togglePlay() {
     playTimer = setInterval(() => {
       S.t += 0.1 * S.speed;
       if (S.t >= S.dur) { S.t = 0; S.playing = false; btn.classList.remove('playing'); btn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>'; ring.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>'; clearInterval(playTimer); }
-      updatePH(); updateProg(); updateTime();
+      updatePH(); updateProg(); updateTime(); updateSubtitleOverlay();
       const sc = document.getElementById('tlScroll'), phPx = S.t * S.zoom - 84;
       if (phPx > sc.scrollLeft + sc.clientWidth - 80) sc.scrollLeft = phPx - sc.clientWidth / 2;
     }, 100);
