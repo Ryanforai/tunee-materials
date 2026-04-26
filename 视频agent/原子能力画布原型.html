@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tunee MV Agent — 原子能力画布原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F5F2EC;
+    --bg-tab-strip: #E8E2D5;
+    --bg-log: #FBF9F4;
+    --bg-canvas: #EEEAE0;
+    --bg-card: #FFFFFF;
+    --bg-island-neutral: #EEEAE0;
+    --bg-island-coral: #FAECE7;
+    --bg-island-purple: #EDECFE;
+    --bg-island-teal: #E1F5EE;
+    --bg-island-pink: #FBEAF0;
+    --bg-island-amber: #FAEEDA;
+    --bg-bubble-sage: #F0F4EB;
+    --border: rgba(28, 26, 23, 0.08);
+    --border-hover: rgba(28, 26, 23, 0.2);
+    --text-primary: #1C1A17;
+    --text-secondary: #6F6A5E;
+    --text-tertiary: #A9A399;
+    --accent: #C44A2E;
+    --accent-soft: #F0997B;
+    --accent-ghost: #FCE5DC;
+    --purple-primary: #534AB7;
+    --purple-dark: #3C3489;
+    --purple-soft: #AFA9EC;
+    --teal-primary: #1D9E75;
+    --teal-dark: #0F6E56;
+    --teal-soft: #5DCAA5;
+    --pink-primary: #D4537E;
+    --pink-dark: #993556;
+    --pink-soft: #ED93B1;
+    --amber-bg: #FAEEDA;
+    --amber-border: #BA7517;
+    --amber-text: #854F0B;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 999px;
+    --shadow-float: 0 1px 2px rgba(28,26,23,0.04), 0 4px 14px rgba(28,26,23,0.05);
+    --shadow-card: 0 2px 8px rgba(28,26,23,0.06);
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    overflow: hidden;
+  }
+
+  /* ——— Tab bar ——— */
+  .tab-bar {
+    display: flex;
+    align-items: flex-end;
+    background: var(--bg-tab-strip);
+    padding: 8px 8px 0;
+    gap: 2px;
+    min-height: 42px;
+  }
+  .tab-logo {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-md);
+    background: #1C1A17;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif;
+    font-weight: 500;
+    font-size: 14px;
+    margin-right: 10px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 10px 9px 12px;
+    border: 0.5px solid transparent;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    font-family: inherit; font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 220px; min-width: 100px;
+    position: relative;
+    background: transparent;
+  }
+  .tab.active {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-weight: 500;
+    border-color: var(--border);
+  }
+  .tab.active::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 2px; background: var(--bg);
+  }
+  .tab-icon { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tab-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ——— Header bar ——— */
+  .header-bar {
+    padding: 8px 24px;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .header-bar .title {
+    font-size: 14px; font-weight: 600;
+    font-family: "Fraunces", serif;
+  }
+  .header-bar .subtitle {
+    font-size: 11.5px; color: var(--text-tertiary);
+  }
+  .header-stats {
+    margin-left: auto;
+    display: flex; gap: 16px;
+  }
+  .header-stat {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 4px 12px; border-radius: var(--radius-sm);
+    background: var(--bg-island-neutral);
+  }
+  .header-stat .num { font-size: 16px; font-weight: 700; line-height: 1.2; }
+  .header-stat .label { font-size: 9px; color: var(--text-tertiary); letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* ——— Canvas ——— */
+  .canvas {
+    position: relative;
+    overflow: auto;
+    background-color: var(--bg-canvas);
+    background-image:
+      radial-gradient(circle, rgba(28,26,23,0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .canvas-content {
+    position: relative;
+    width: 1600px;
+    padding: 40px 60px 80px;
+  }
+
+  /* ——— Layer row ——— */
+  .layer-row {
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .layer-row:last-child { margin-bottom: 0; }
+
+  .layer-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .layer-badge {
+    font-size: 13px; font-weight: 700;
+    padding: 4px 10px; border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .layer-badge.l0 { background: var(--bg-island-coral); color: var(--accent); }
+  .layer-badge.l1 { background: var(--bg-island-purple); color: var(--purple-dark); }
+  .layer-badge.l2 { background: var(--bg-island-teal); color: var(--teal-dark); }
+  .layer-badge.l3 { background: var(--bg-island-purple); color: var(--purple-dark); }
+  .layer-badge.l4 { background: var(--bg-island-amber); color: var(--amber-text); }
+
+  .layer-title { font-size: 18px; font-weight: 700; }
+  .layer-verb { font-size: 13px; color: var(--text-tertiary); font-style: italic; }
+  .layer-count {
+    margin-left: auto;
+    font-size: 11px; color: var(--text-tertiary);
+    padding: 3px 10px; border-radius: var(--radius-pill);
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+  }
+
+  /* ——— Capability islands on canvas ——— */
+  .islands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .island {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-float);
+    animation: islandIn 0.4s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes islandIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .island-header {
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 12px; font-weight: 600;
+  }
+  .island-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .island-sub { font-size: 10px; opacity: 0.7; font-weight: 400; margin-left: 2px; }
+  .island-prio {
+    margin-left: auto;
+    font-size: 9px; font-weight: 700;
+    padding: 1px 5px; border-radius: 3px;
+    letter-spacing: 0.3px;
+  }
+  .island-prio.p0 { background: #FDE8E8; color: #C53030; }
+  .island-prio.p1 { background: #FFF3CD; color: #856404; }
+  .island-prio.p2 { background: #E8F5E9; color: #2E7D32; }
+
+  .island.neutral .island-header { background: var(--bg-island-neutral); color: var(--text-primary); }
+  .island.neutral .island-dot { background: #6F6A5E; }
+  .island.coral .island-header { background: var(--bg-island-coral); color: var(--accent); }
+  .island.coral .island-dot { background: var(--accent); }
+  .island.purple .island-header { background: var(--bg-island-purple); color: var(--purple-dark); }
+  .island.purple .island-dot { background: var(--purple-primary); }
+  .island.teal .island-header { background: var(--bg-island-teal); color: var(--teal-dark); }
+  .island.teal .island-dot { background: var(--teal-primary); }
+  .island.pink .island-header { background: var(--bg-island-pink); color: var(--pink-dark); }
+  .island.pink .island-dot { background: var(--pink-primary); }
+  .island.amber .island-header { background: var(--bg-island-amber); color: var(--amber-text); }
+  .island.amber .island-dot { background: #BA7517; }
+
+  .island-body {
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  /* ——— Inside island: capability detail ——— */
+  .cap-name {
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 12px; font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .island.coral .cap-name { color: var(--accent); }
+  .island.purple .cap-name { color: var(--purple-primary); }
+  .island.teal .cap-name { color: var(--teal-primary); }
+  .island.pink .cap-name { color: var(--pink-primary); }
+  .island.amber .cap-name { color: #BA7517; }
+
+  .cap-desc {
+    font-size: 11.5px; color: var(--text-secondary); line-height: 1.55;
+  }
+
+  /* I/O block */
+  .io-block {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 6px 8px; border-radius: var(--radius-sm);
+    background: #F9F7F2;
+  }
+  .io-row {
+    display: flex; align-items: baseline; gap: 6px;
+    font-size: 10px;
+  }
+  .io-label {
+    font-weight: 600; font-size: 9px; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 1px 4px; border-radius: 3px;
+    min-width: 32px; text-align: center;
+  }
+  .io-label.in { background: #E8F0E8; color: #2E7D32; }
+  .io-label.out { background: #E8E8F0; color: #534AB7; }
+  .io-text {
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 9.5px; color: var(--text-tertiary);
+    word-break: break-all;
+  }
+
+  /* Implementation tag */
+  .impl-tag {
+    font-size: 10px; color: var(--text-tertiary);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .impl-tag svg { width: 12px; height: 12px; }
+
+  /* Flow for skills */
+  .flow-block {
+    padding: 8px 10px; border-radius: var(--radius-sm);
+    background: #F9F7F2;
+    font-size: 10.5px; color: var(--text-secondary);
+    line-height: 1.6;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  }
+  .flow-arrow { color: var(--accent); font-weight: 600; }
+
+  /* Visual mockup inside island */
+  .mockup {
+    padding: 8px; border-radius: var(--radius-sm);
+    background: #F9F7F2;
+    min-height: 48px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* L0 mode switch mockup */
+  .mode-mockup {
+    display: flex; gap: 8px; align-items: stretch; width: 100%;
+  }
+  .mode-panel {
+    flex: 1; border-radius: var(--radius-sm);
+    padding: 8px; text-align: center;
+  }
+  .mode-panel.before {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  .mode-panel.after {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-soft);
+    position: relative;
+  }
+  .mode-panel .panel-label {
+    font-size: 9px; color: var(--text-tertiary); margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .mode-bar {
+    height: 8px; border-radius: 4px; margin-bottom: 4px;
+  }
+  .mode-bar.chat { background: var(--accent-ghost); }
+  .mode-bar.canvas { background: var(--bg-island-teal); }
+  .mode-arrow {
+    display: flex; align-items: center;
+    color: var(--accent); font-size: 16px; font-weight: 700;
+  }
+
+  /* P2 music analysis mockup */
+  .music-mockup {
+    display: flex; flex-direction: column; gap: 6px; width: 100%;
+  }
+  .music-bars {
+    display: flex; align-items: flex-end; gap: 2px; height: 28px;
+  }
+  .music-bar {
+    width: 4px; border-radius: 2px;
+    background: var(--accent);
+    opacity: 0.6;
+  }
+  .music-tags {
+    display: flex; gap: 4px; flex-wrap: wrap;
+  }
+  .music-tag {
+    font-size: 9px; padding: 2px 6px; border-radius: var(--radius-pill);
+    background: var(--bg-island-neutral); color: var(--text-secondary);
+  }
+  .music-tag.highlight { background: var(--accent-ghost); color: var(--accent); }
+
+  /* Canvas push mockup */
+  .push-mockup {
+    display: flex; gap: 6px; align-items: center; width: 100%;
+  }
+  .push-source {
+    font-size: 9px; padding: 3px 8px; border-radius: var(--radius-pill);
+    background: var(--bg-island-purple); color: var(--purple-dark);
+    font-family: monospace;
+  }
+  .push-arrow { color: var(--teal-primary); font-size: 14px; }
+  .push-target {
+    flex: 1; height: 24px; border-radius: var(--radius-sm);
+    border: 1.5px dashed var(--teal-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: var(--teal-dark);
+  }
+
+  /* Tool call mockup */
+  .tool-mockup {
+    display: flex; flex-direction: column; gap: 6px; width: 100%;
+  }
+  .tool-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px;
+  }
+  .tool-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--purple-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .tool-progress {
+    height: 3px; border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .tool-progress-bar {
+    height: 100%; border-radius: 2px;
+    background: var(--purple-primary);
+  }
+  .tool-time {
+    font-size: 9px; color: var(--text-tertiary);
+    font-family: monospace;
+  }
+
+  /* Skill flow mockup */
+  .skill-flow {
+    display: flex; flex-wrap: wrap; gap: 4px; align-items: center; width: 100%;
+  }
+  .skill-step {
+    font-size: 9px; padding: 3px 7px; border-radius: var(--radius-pill);
+    font-family: monospace;
+  }
+  .skill-step.s { background: var(--bg-island-amber); color: var(--amber-text); }
+  .skill-step.p { background: var(--bg-island-purple); color: var(--purple-dark); }
+  .skill-step.t { background: var(--bg-island-teal); color: var(--teal-dark); }
+  .skill-step.c { background: var(--bg-island-coral); color: var(--accent); }
+  .skill-step-label { font-size: 8px; color: var(--text-tertiary); margin-top: 2px; text-align: center; }
+
+  /* Section label within L4 */
+  .section-label {
+    grid-column: 1 / -1;
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
+    padding: 8px 0 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1; height: 0.5px;
+    background: var(--border);
+  }
+
+  /* ——— Connector lines (decorative) ——— */
+  .connector {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <div class="tab-logo">T</div>
+  <div class="tab">
+    <div class="tab-icon" style="color:var(--accent)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1v-9.5z"/></svg>
+    </div>
+    <span class="tab-name">Home</span>
+  </div>
+  <div class="tab">
+    <div class="tab-icon" style="color:var(--purple-primary)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.71.36 1.39.7 2.02a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.63.34 1.31.58 2.02.7A2 2 0 0 1 22 16.92z"/></svg>
+    </div>
+    <span class="tab-name">晴天 · MV</span>
+  </div>
+  <div class="tab active">
+    <div class="tab-icon" style="color:var(--teal-primary)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </div>
+    <span class="tab-name">原子能力画布</span>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header-bar">
+  <div class="title">Atomic Capabilities Canvas</div>
+  <div class="subtitle">MV Agent 原子能力全景 · 画布视图</div>
+  <div class="header-stats">
+    <div class="header-stat"><span class="num">1</span><span class="label">L0</span></div>
+    <div class="header-stat"><span class="num">6</span><span class="label">L1</span></div>
+    <div class="header-stat"><span class="num">9</span><span class="label">L2</span></div>
+    <div class="header-stat"><span class="num">7</span><span class="label">L3</span></div>
+    <div class="header-stat"><span class="num">13</span><span class="label">L4</span></div>
+  </div>
+</div>
+
+<!-- Canvas -->
+<div class="canvas">
+  <div class="canvas-content">
+
+    <!-- ════════════════════════════════════ -->
+    <!-- L0: UI Mode -->
+    <!-- ════════════════════════════════════ -->
+    <div class="layer-row">
+      <div class="layer-head">
+        <span class="layer-badge l0">L0</span>
+        <span class="layer-title">UI 模式层</span>
+        <span class="layer-verb">"切" —— 全屏对话 ↔ 对话+画布</span>
+        <span class="layer-count">1 个能力</span>
+      </div>
+      <div class="islands-grid">
+        <!-- M1 -->
+        <div class="island coral">
+          <div class="island-header">
+            <div class="island-dot"></div>
+            <span>M1</span>
+            <span class="island-sub">UI 模式切换</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">activate_workspace</div>
+            <div class="cap-desc">检测到 MV 意图后，全屏对话变为 30% 对话 + 70% 画布，初始化第一个 Page 和默认 region。</div>
+            <!-- Mode switch visual mockup -->
+            <div class="mockup">
+              <div class="mode-mockup">
+                <div class="mode-panel before">
+                  <div class="panel-label">Before</div>
+                  <div class="mode-bar chat" style="height:32px"></div>
+                  <div style="font-size:8px;color:var(--text-tertiary)">100% 对话</div>
+                </div>
+                <div class="mode-arrow">&rarr;</div>
+                <div class="mode-panel after">
+                  <div class="panel-label">After</div>
+                  <div style="display:flex;gap:2px;height:32px">
+                    <div class="mode-bar chat" style="flex:3;height:32px"></div>
+                    <div class="mode-bar canvas" style="flex:7;height:32px"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text-tertiary)">
+                    <span>30% 对话</span><span>70% 画布</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row">
+                <span class="io-label in">IN</span>
+                <span class="io-text">intent_type, initial_layout?</span>
+              </div>
+              <div class="io-row">
+                <span class="io-label out">OUT</span>
+                <span class="io-text">{ workspace_id }</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════ -->
+    <!-- L1: Perception -->
+    <!-- ════════════════════════════════════ -->
+    <div class="layer-row">
+      <div class="layer-head">
+        <span class="layer-badge l1">L1</span>
+        <span class="layer-title">感知层</span>
+        <span class="layer-verb">"读" —— 理解用户上传的内容</span>
+        <span class="layer-count">6 个能力</span>
+      </div>
+      <div class="islands-grid">
+        <!-- P1 -->
+        <div class="island purple">
+          <div class="island-header">
+            <div class="island-dot"></div><span>P1</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">read_asset</div>
+            <div class="cap-desc">读取用户上传素材的基本信息。</div>
+            <div class="mockup">
+              <div style="display:flex;align-items:center;gap:8px;width:100%">
+                <div style="width:32px;height:32px;border-radius:6px;background:var(--bg-island-neutral);display:flex;align-items:center;justify-content:center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:500">晴天.mp3</div>
+                  <div style="font-size:9px;color:var(--text-tertiary)">3.2 MB · audio/mp3</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal-primary)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="font-size:9px;color:var(--teal-dark);font-family:monospace">{url,type,size}</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">asset_id / URL</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ url, type, size, metadata }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 -->
+        <div class="island purple">
+          <div class="island-header">
+            <div class="island-dot"></div><span>P2</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">analyze_music</div>
+            <div class="cap-desc">分析音乐音频，提取 BPM、调性、情绪曲线、结构。</div>
+            <div class="mockup">
+              <div class="music-mockup">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <span style="font-size:10px;font-weight:600">BPM: 128</span>
+                  <span style="font-size:10px;color:var(--text-tertiary)">G Major</span>
+                  <span style="font-size:10px;color:var(--text-tertiary)">3:42</span>
+                </div>
+                <div class="music-bars">
+                  <div class="music-bar" style="height:8px;width:4px"></div>
+                  <div class="music-bar" style="height:12px;width:4px"></div>
+                  <div class="music-bar" style="height:16px;width:4px"></div>
+                  <div class="music-bar" style="height:10px;width:4px"></div>
+                  <div class="music-bar" style="height:20px;width:4px"></div>
+                  <div class="music-bar" style="height:24px;width:4px"></div>
+                  <div class="music-bar" style="height:18px;width:4px"></div>
+                  <div class="music-bar" style="height:14px;width:4px"></div>
+                  <div class="music-bar" style="height:22px;width:4px"></div>
+                  <div class="music-bar" style="height:16px;width:4px"></div>
+                  <div class="music-bar" style="height:12px;width:4px"></div>
+                  <div class="music-bar" style="height:8px;width:4px"></div>
+                  <div class="music-bar" style="height:6px;width:4px"></div>
+                  <div class="music-bar" style="height:10px;width:4px"></div>
+                  <div class="music-bar" style="height:14px;width:4px"></div>
+                  <div class="music-bar" style="height:20px;width:4px"></div>
+                  <div class="music-bar" style="height:26px;width:4px"></div>
+                  <div class="music-bar" style="height:22px;width:4px"></div>
+                  <div class="music-bar" style="height:16px;width:4px"></div>
+                  <div class="music-bar" style="height:10px;width:4px"></div>
+                </div>
+                <div class="music-tags">
+                  <span class="music-tag highlight">Intro</span>
+                  <span class="music-tag">Verse</span>
+                  <span class="music-tag highlight">Chorus</span>
+                  <span class="music-tag">Bridge</span>
+                  <span class="music-tag">Outro</span>
+                </div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">audio_url, lyrics_text?</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ bpm, key, structure, mood_curve }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P3 -->
+        <div class="island purple">
+          <div class="island-header">
+            <div class="island-dot"></div><span>P3</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">parse_lyrics</div>
+            <div class="cap-desc">解析歌词文本，对齐时间戳，识别段落结构。</div>
+            <div class="mockup">
+              <div style="width:100%;font-size:10px;font-family:monospace;line-height:1.8">
+                <div><span style="color:var(--text-tertiary)">[00:00]</span> <span style="color:var(--purple-dark)">Intro</span> - 纯音乐</div>
+                <div><span style="color:var(--text-tertiary)">[00:12]</span> <span style="color:var(--text-secondary)">故事的开头 总是极尽温柔</span></div>
+                <div><span style="color:var(--text-tertiary)">[00:18]</span> <span style="color:var(--text-secondary)">阳光洒在你 微笑的角落</span></div>
+                <div style="color:var(--accent);font-weight:600">[00:24] Chorus - 故事的高潮</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">lyrics_text / lrc_url</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ language, lines:[{time,text}], structure }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P4 -->
+        <div class="island purple">
+          <div class="island-header">
+            <div class="island-dot"></div><span>P4</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">analyze_image</div>
+            <div class="cap-desc">理解图片内容：描述、主色、构图、风格标签。</div>
+            <div class="mockup">
+              <div style="display:flex;gap:8px;width:100%;align-items:flex-start">
+                <div style="width:56px;height:56px;border-radius:6px;background:linear-gradient(135deg,#2C2C2A,#8B5FCF);flex-shrink:0"></div>
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:500;margin-bottom:3px">赛博朋克城市夜景</div>
+                  <div class="music-tags">
+                    <span class="music-tag" style="background:var(--bg-island-purple);color:var(--purple-dark)">#neon</span>
+                    <span class="music-tag" style="background:var(--bg-island-purple);color:var(--purple-dark)">#cyberpunk</span>
+                    <span class="music-tag">#wide-angle</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">image_url</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ description, colors, style_tags[] }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P5 -->
+        <div class="island purple">
+          <div class="island-header">
+            <div class="island-dot"></div><span>P5</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">analyze_video</div>
+            <div class="cap-desc">理解参考视频：时长、帧率、场景分段、运动强度。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:6px;align-items:center">
+                <div style="width:72px;height:40px;border-radius:4px;background:linear-gradient(135deg,#3C3489,#7F77DD);display:flex;align-items:center;justify-content:center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:500">1080p · 30fps · 0:30</div>
+                  <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px">3 scenes · high motion</div>
+                </div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">video_url</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ duration, fps, scenes[], motion_level }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P6 -->
+        <div class="island purple">
+          <div class="island-header">
+            <div class="island-dot"></div><span>P6</span>
+            <span class="island-prio p2">P2</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">read_text_file</div>
+            <div class="cap-desc">读取用户上传的文本文件（剧本、分镜描述等）。</div>
+            <div class="mockup">
+              <div style="width:100%;font-size:10px;color:var(--text-secondary);font-family:monospace;line-height:1.6">
+                <div style="color:var(--text-tertiary);font-size:9px">UTF-8 · 1.2 KB</div>
+                <div>第一幕：黄昏，城市天台</div>
+                <div>主角独自站在边缘，风吹乱头发...</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">text_url / text_content</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ content, encoding, language }</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════ -->
+    <!-- L2: Canvas Action -->
+    <!-- ════════════════════════════════════ -->
+    <div class="layer-row">
+      <div class="layer-head">
+        <span class="layer-badge l2">L2</span>
+        <span class="layer-title">画布操作层</span>
+        <span class="layer-verb">"放" —— 决定内容在哪、怎么展示</span>
+        <span class="layer-count">9 个能力</span>
+      </div>
+      <div class="islands-grid">
+        <!-- C1 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C1</span>
+            <span class="island-sub">唯一同步通道</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">push_to_canvas</div>
+            <div class="cap-desc">将数据推送到画布指定区域。所有工具产出都通过此通道。</div>
+            <div class="mockup">
+              <div class="push-mockup">
+                <div class="push-source">asset_created</div>
+                <div class="push-arrow">&rarr;&rarr;</div>
+                <div class="push-target">visual_assets region</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">event_type, target_region, data</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C2 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C2</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">open_page</div>
+            <div class="cap-desc">在画布新开一个 Page，用于同时做多首 MV。</div>
+            <div class="mockup">
+              <div style="display:flex;gap:4px;width:100%;align-items:flex-end">
+                <div style="flex:1;height:24px;border-radius:6px 6px 0 0;background:var(--bg-island-neutral);display:flex;align-items:center;padding:0 8px;font-size:9px;color:var(--text-tertiary)">晴天 · MV</div>
+                <div style="flex:1;height:24px;border-radius:6px 6px 0 0;background:var(--bg-card);border:0.5px solid var(--border);border-bottom:none;display:flex;align-items:center;padding:0 8px;font-size:9px;color:var(--accent);font-weight:500">B 歌 · MV <span style="color:var(--teal-primary);margin-left:2px">+</span></div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">page_id, page_title</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ page_id }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C3 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C3</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">switch_page</div>
+            <div class="cap-desc">切换到指定 Page，将画布焦点从一个项目转到另一个。</div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">page_id</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C4 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C4</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">close_page</div>
+            <div class="cap-desc">关闭一个 Page，释放对应画布工作区的资源。</div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">page_id</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C5 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C5</span>
+            <span class="island-prio p2">P2</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">list_pages</div>
+            <div class="cap-desc">列出所有已打开的 Page，让 Agent 知道当前有哪些项目。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;background:var(--bg-island-teal);font-size:9px">
+                  <div style="width:12px;height:12px;border-radius:3px;background:var(--teal-primary)"></div>
+                  <span style="font-weight:500">page_1</span>
+                  <span style="color:var(--text-tertiary)">晴天 · MV</span>
+                  <span style="margin-left:auto;color:var(--teal-dark)">active</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;background:var(--bg-island-neutral);font-size:9px">
+                  <div style="width:12px;height:12px;border-radius:3px;background:var(--text-tertiary)"></div>
+                  <span>page_2</span>
+                  <span style="color:var(--text-tertiary)">B 歌 · MV</span>
+                  <span style="margin-left:auto;color:var(--text-tertiary)">idle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C6 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C6</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">focus_element</div>
+            <div class="cap-desc">聚焦画布元素 —— 缩放 + 居中，引导用户注意。</div>
+            <div class="mockup">
+              <div style="width:100%;height:36px;border-radius:4px;background:var(--bg-island-neutral);position:relative;overflow:hidden">
+                <div style="position:absolute;top:8px;left:8px;width:24px;height:20px;border-radius:3px;background:var(--text-tertiary);opacity:0.3"></div>
+                <div style="position:absolute;top:6px;left:50%;width:48px;height:24px;border-radius:3px;background:var(--accent-ghost);border:2px solid var(--accent);transform:translateX(-50%)"></div>
+                <div style="position:absolute;top:8px;right:8px;width:24px;height:20px;border-radius:3px;background:var(--text-tertiary);opacity:0.3"></div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">element_id</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C7 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C7</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">update_element</div>
+            <div class="cap-desc">更新画布上已有元素的部分属性（替换视频 URL 等）。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:6px;align-items:center">
+                <div style="width:40px;height:24px;border-radius:3px;background:var(--text-tertiary);opacity:0.3"></div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal-primary)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="width:40px;height:24px;border-radius:3px;background:var(--accent-ghost);border:1px solid var(--accent-soft)"></div>
+                <span style="font-size:9px;color:var(--teal-dark);font-family:monospace">patch: {video_url}</span>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">element_id, patch_data</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C8 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C8</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">remove_element</div>
+            <div class="cap-desc">从画布移除元素，用户删除资产时同步清理。</div>
+            <div class="mockup">
+              <div style="width:100%;height:24px;border-radius:4px;background:var(--bg-island-coral);border:1px dashed var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--accent)">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                Shot_3 removed
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">element_id</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C9 -->
+        <div class="island teal">
+          <div class="island-header">
+            <div class="island-dot"></div><span>C9</span>
+            <span class="island-prio p2">P2</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">layout_elements</div>
+            <div class="cap-desc">在指定区域内按某种布局排列元素（网格、堆叠、时间线）。</div>
+            <div class="mockup">
+              <div style="width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+                <div style="height:16px;border-radius:3px;background:var(--accent-ghost)"></div>
+                <div style="height:16px;border-radius:3px;background:var(--bg-island-purple)"></div>
+                <div style="height:16px;border-radius:3px;background:var(--bg-island-teal)"></div>
+                <div style="height:16px;border-radius:3px;background:var(--bg-island-pink)"></div>
+                <div style="height:16px;border-radius:3px;background:var(--bg-island-amber)"></div>
+                <div style="height:16px;border-radius:3px;background:var(--bg-island-neutral)"></div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">region, layout_type, elements</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ success }</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════ -->
+    <!-- L3: External Tool -->
+    <!-- ════════════════════════════════════ -->
+    <div class="layer-row">
+      <div class="layer-head">
+        <span class="layer-badge l3">L3</span>
+        <span class="layer-title">外部工具层</span>
+        <span class="layer-verb">"做" —— 真正产生新内容</span>
+        <span class="layer-count">7 个能力</span>
+      </div>
+      <div class="islands-grid">
+        <!-- T1 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T1</span>
+            <span class="island-sub">5-20s</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">generate_image</div>
+            <div class="cap-desc">生成图片：角色参考图、场景图、分镜图。</div>
+            <div class="mockup">
+              <div class="tool-mockup">
+                <div class="tool-status">
+                  <div class="tool-spinner"></div>
+                  <span style="font-weight:500">生成角色图...</span>
+                  <span class="tool-time">8s / 20s</span>
+                </div>
+                <div class="tool-progress"><div class="tool-progress-bar" style="width:40%"></div></div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">prompt, asset_type, model?, seed?</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ image_url, seed, metadata }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- T2 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T2</span>
+            <span class="island-sub">60-120s</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">generate_video</div>
+            <div class="cap-desc">生成视频片段。异步任务，返回 task_id 用于轮询。</div>
+            <div class="mockup">
+              <div class="tool-mockup">
+                <div class="tool-status">
+                  <div class="tool-spinner"></div>
+                  <span style="font-weight:500">渲染 Shot_4...</span>
+                  <span class="tool-time">45s / 120s</span>
+                </div>
+                <div class="tool-progress"><div class="tool-progress-bar" style="width:37%;background:var(--accent)"></div></div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">video_prompt, frame_url?, duration</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ video_url / task_id, status }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- T3 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T3</span>
+            <span class="island-sub">1-30s</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">run_ffmpeg</div>
+            <div class="cap-desc">音视频处理：拼接、提取、转码、烧字幕。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:4px;align-items:center;font-family:monospace;font-size:9px">
+                <span style="color:var(--pink-dark);font-weight:500">ffmpeg</span>
+                <span style="color:var(--text-tertiary)">-i</span>
+                <span style="color:var(--accent)">shot1.mp4</span>
+                <span style="color:var(--text-tertiary)">-i</span>
+                <span style="color:var(--accent)">shot2.mp4</span>
+                <span style="color:var(--text-tertiary)">-c:v libx264</span>
+                <span style="color:var(--text-tertiary)">-vf</span>
+                <span style="color:var(--teal-dark)">subtitles=srt</span>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">input_urls, operation, params</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ output_url, metadata }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- T4 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T4</span>
+            <span class="island-sub">3-10s</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">evaluate_quality</div>
+            <div class="cap-desc">质量检测：对生成的图片/视频评分，返回问题列表。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:50%;border:3px solid var(--teal-primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal-dark)">82</div>
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:500;color:var(--teal-dark)">质量通过</div>
+                  <div style="font-size:9px;color:var(--text-tertiary)">无严重问题</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal-primary)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">asset_url, asset_type, criteria?</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ score, issues[], suggestion }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- T5 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T5</span>
+            <span class="island-sub">2-8s</span>
+            <span class="island-prio p2">P2</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">web_search</div>
+            <div class="cap-desc">搜索参考素材（MV 风格、导演作品、视觉参考）。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+                <div style="font-size:9px;color:var(--text-secondary)">王家卫 MV 风格参考</div>
+                <div style="font-size:9px;color:var(--text-tertiary);text-decoration:underline">chungking-express-color-palette...</div>
+                <div style="font-size:9px;color:var(--text-tertiary);text-decoration:underline">wong-kar-wai-cinematography...</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">query, source?, max_results?</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ references[] }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- T6 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T6</span>
+            <span class="island-sub">10-60s</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">lip_sync</div>
+            <div class="cap-desc">口型同步：将视频中的嘴型对齐到音频。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:6px;align-items:center">
+                <div style="width:36px;height:24px;border-radius:3px;background:linear-gradient(135deg,#3C3489,#7F77DD);display:flex;align-items:center;justify-content:center">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                </div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--pink-primary)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--bg-island-pink);display:flex;align-items:center;justify-content:center">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--pink-primary)" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/></svg>
+                </div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--teal-primary)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="font-size:9px;color:var(--teal-dark);font-weight:500">synced</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">video_url, audio_url</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ video_url (synced), metadata }</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- T7 -->
+        <div class="island pink">
+          <div class="island-header">
+            <div class="island-dot"></div><span>T7</span>
+            <span class="island-sub">10-30s</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">face_swap</div>
+            <div class="cap-desc">换脸 / 角色一致性：将参考面部特征迁移到目标视频。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:6px;align-items:center">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--bg-island-coral);border:2px solid var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:9px">A</div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--pink-primary)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="width:36px;height:24px;border-radius:3px;background:var(--bg-island-neutral)"></div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--teal-primary)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="width:36px;height:24px;border-radius:3px;background:var(--bg-island-teal);border:1px solid var(--teal-soft);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--teal-dark)">face=A</div>
+              </div>
+            </div>
+            <div class="io-block">
+              <div class="io-row"><span class="io-label in">IN</span><span class="io-text">source_video_url, face_image_url</span></div>
+              <div class="io-row"><span class="io-label out">OUT</span><span class="io-text">{ video_url (swapped) }</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════ -->
+    <!-- L4: Skill Composition -->
+    <!-- ════════════════════════════════════ -->
+    <div class="layer-row">
+      <div class="layer-head">
+        <span class="layer-badge l4">L4</span>
+        <span class="layer-title">技能组合层</span>
+        <span class="layer-verb">"编" —— LLM 推理 + 多 Tool 编排</span>
+        <span class="layer-count">13 个 Skill</span>
+      </div>
+      <div class="islands-grid" style="grid-template-columns:repeat(auto-fill, minmax(320px,1fr))">
+
+        <!-- Section: Orchestration -->
+        <div class="section-label">编排型 Skill</div>
+
+        <!-- S1 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S1</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">generate_proposals</div>
+            <div class="cap-desc">音乐分析 → 构思 3 个方案 → 生成角色/场景图 → 汇总提案。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step p">P2 analyze</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">LLM</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">T1 &times;6</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step c">C1 push</span>
+              </div>
+              <div class="skill-step-label">输出: proposals[]</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S2 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S2</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">mv_planner</div>
+            <div class="cap-desc">方案确定后，校验时间轴 → 撰写 SHOT treatment → 输出文字分镜。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step s">mv_guide</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">LLM</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step c">C1 push</span>
+              </div>
+              <div class="skill-step-label">输出: 文字分镜列表</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S3 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S3</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">mv_generator</div>
+            <div class="cap-desc">将 treatment 转化为 video_prompt + frame_prompt，输出结构化 JSON。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step s">treatment</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">LLM</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step c">C1 push</span>
+              </div>
+              <div class="skill-step-label">输出: shot JSON[]</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S4 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S4</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">video_generation</div>
+            <div class="cap-desc">逐 shot 生成视频 → 自动质检 → 推送到画布时间线。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step t">T2 gen</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">T4 check</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step c">C1 push</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span style="font-size:9px;color:var(--text-tertiary)">x N shots</span>
+              </div>
+              <div class="skill-step-label">输出: video_clips ready</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S5 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S5</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">revise_shot</div>
+            <div class="cap-desc">定位目标 → 理解意图 → 重新生成 → 推送更新。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step p">P1 read</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">LLM</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">T1</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">T2</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step c">C7 update</span>
+              </div>
+              <div class="skill-step-label">输出: updated shot</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S6 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S6</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">export_mv</div>
+            <div class="cap-desc">导出成片：拼接所有镜头 → 烧入字幕 → 转码为 MP4。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step t">concat</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">subtitles</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">convert</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span style="font-size:9px;color:var(--amber-text);font-weight:600">.mp4</span>
+              </div>
+              <div class="skill-step-label">输出: final video</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Creative Analysis -->
+        <div class="section-label">创意分析 Skill</div>
+
+        <!-- S7 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S7</span>
+            <span class="island-sub">Story</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">creative_analysis_story</div>
+            <div class="cap-desc">故事模式：角色动作和故事推进，遵循现实物理规则。4-15s。</div>
+            <div class="mockup">
+              <div style="width:100%;font-size:10px;color:var(--text-secondary);line-height:1.5">
+                <div style="color:var(--amber-text);font-weight:500;margin-bottom:3px">叙事设计</div>
+                <div style="font-size:9px;color:var(--text-tertiary)">角色 A 在天台相遇 → 雨中追逐 → 黄昏告别</div>
+              </div>
+            </div>
+            <div class="flow-block">
+              music <span class="flow-arrow">&rarr;</span> LLM narrative <span class="flow-arrow">&rarr;</span> mv_guide JSON
+            </div>
+          </div>
+        </div>
+
+        <!-- S8 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S8</span>
+            <span class="island-sub">Visions</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">creative_analysis_visions</div>
+            <div class="cap-desc">异世界模式：不可能存在的世界，每帧都是视觉奇观。4-15s。</div>
+            <div class="mockup">
+              <div style="width:100%;font-size:10px;color:var(--text-secondary);line-height:1.5">
+                <div style="color:var(--amber-text);font-weight:500;margin-bottom:3px">异世界设计</div>
+                <div style="font-size:9px;color:var(--text-tertiary)">漂浮的几何城市 → 水下霓虹 → 镜面无限反射</div>
+              </div>
+            </div>
+            <div class="flow-block">
+              music <span class="flow-arrow">&rarr;</span> LLM surreal <span class="flow-arrow">&rarr;</span> mv_guide JSON
+            </div>
+          </div>
+        </div>
+
+        <!-- S9 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S9</span>
+            <span class="island-sub">Lipsync</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">creative_analysis_lipsync</div>
+            <div class="cap-desc">口型同步模式：按 video_model 分段规则生成镜头序列。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:3px;flex-wrap:wrap">
+                <span class="music-tag" style="background:var(--bg-island-pink);color:var(--pink-dark)">infinite_talk</span>
+                <span class="music-tag" style="background:var(--bg-island-purple);color:var(--purple-dark)">wan_2.7</span>
+                <span class="music-tag" style="background:var(--bg-island-teal);color:var(--teal-dark)">seedance_2.0</span>
+                <span class="music-tag">kling_3.0</span>
+              </div>
+            </div>
+            <div class="flow-block">
+              lyrics <span class="flow-arrow">&rarr;</span> LLM lip-sync <span class="flow-arrow">&rarr;</span> mv_guide JSON
+            </div>
+          </div>
+        </div>
+
+        <!-- S10 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S10</span>
+            <span class="island-sub">Clone</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">creative_analysis_clone</div>
+            <div class="cap-desc">复刻模式：基于参考 MV 的视觉 DNA，重组到新歌时间轴上。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;gap:6px;align-items:center">
+                <div style="width:36px;height:24px;border-radius:3px;background:var(--bg-island-neutral);font-size:8px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)">Ref MV</div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--amber-text)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="font-size:9px;color:var(--amber-text);font-weight:500">DNA extract</div>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--amber-text)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div style="width:36px;height:24px;border-radius:3px;background:var(--bg-island-teal);font-size:8px;display:flex;align-items:center;justify-content:center;color:var(--teal-dark)">New MV</div>
+              </div>
+            </div>
+            <div class="flow-block">
+              ref MV <span class="flow-arrow">&rarr;</span> DNA extract <span class="flow-arrow">&rarr;</span> remap <span class="flow-arrow">&rarr;</span> mv_guide
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Asset Generation -->
+        <div class="section-label">资产生成 Skill</div>
+
+        <!-- S11 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S11</span>
+            <span class="island-sub">Character</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">asset_generation_character</div>
+            <div class="cap-desc">角色图提示词生成。基于 9 维度电影感框架。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;flex-wrap:wrap;gap:2px;font-size:8px">
+                <span class="music-tag highlight" style="font-size:8px;padding:1px 4px">主题</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">景别</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">构图</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">焦段</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">光影</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">色彩</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px;background:#FDE8E8;color:#C53030">验证</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">胶片</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">神态</span>
+              </div>
+            </div>
+            <div class="flow-block">
+              9 dimensions <span class="flow-arrow">&rarr;</span> MJ/SD prompt <span class="flow-arrow">&rarr;</span> T1 generate
+            </div>
+          </div>
+        </div>
+
+        <!-- S12 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S12</span>
+            <span class="island-sub">Scene</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">asset_generation_scene</div>
+            <div class="cap-desc">场景图提示词生成。同上 9 维度，聚焦场景构建。</div>
+            <div class="mockup">
+              <div style="width:100%;display:flex;flex-wrap:wrap;gap:2px;font-size:8px">
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">地点</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">氛围</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">光线</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">透视</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px;background:#FDE8E8;color:#C53030">验证</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">天气</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">材质</span>
+              </div>
+            </div>
+            <div class="flow-block">
+              9 dimensions <span class="flow-arrow">&rarr;</span> MJ/SD prompt <span class="flow-arrow">&rarr;</span> T1 generate
+            </div>
+          </div>
+        </div>
+
+        <!-- S13 -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>S13</span>
+            <span class="island-sub">Cinematic</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">cinematic_prompt_generator</div>
+            <div class="cap-desc">电影感图片提示词总 Skill，支持参考图反向分析。</div>
+            <div class="flow-block">
+              description/ref <span class="flow-arrow">&rarr;</span> 9 modules <span class="flow-arrow">&rarr;</span> full prompt
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Video Generation Nodes -->
+        <div class="section-label">视频生成 Skill 节点</div>
+
+        <!-- V1 single -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>V1</span>
+            <span class="island-sub">一段式</span>
+            <span class="island-prio p0">P0</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">mv-generation-一段式</div>
+            <div class="cap-desc">单节点完整版，接收 mv_guide JSON 逐 shot 输出分镜脚本。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step s">Unwrap</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">Normalize</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">Dispatch</span>
+              </div>
+              <div style="display:flex;gap:3px;margin-top:4px;flex-wrap:wrap">
+                <span class="music-tag" style="font-size:8px;padding:1px 4px;background:var(--bg-island-pink);color:var(--pink-dark)">infinite_talk</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px;background:var(--bg-island-purple);color:var(--purple-dark)">wan_2.7</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px;background:var(--bg-island-teal);color:var(--teal-dark)">sd2.0</span>
+                <span class="music-tag" style="font-size:8px;padding:1px 4px">kling_3.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- V2 two-phase -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>V2</span>
+            <span class="island-sub">二段式</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">mv-generation-二段式</div>
+            <div class="cap-desc">planner + generator 双节点拆分，先文字后 JSON。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step s">planner</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">generator</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span style="font-size:9px;color:var(--amber-text);font-weight:500">shot JSON</span>
+              </div>
+              <div class="skill-step-label">同 4 模型支持</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SD2 single -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>SD2</span>
+            <span class="island-sub">一段式</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">mv-generation-sd2-一段式</div>
+            <div class="cap-desc">Seedance 2.0 专用单节点，仅 story/visions/clone，4-15s。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step s">Unwrap</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step s">Normalize</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">Timeline</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">Dispatch</span>
+              </div>
+              <div class="skill-step-label">seedance_2_0 only</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SD2 two-phase -->
+        <div class="island amber">
+          <div class="island-header">
+            <div class="island-dot"></div><span>SD2</span>
+            <span class="island-sub">二段式</span>
+            <span class="island-prio p1">P1</span>
+          </div>
+          <div class="island-body">
+            <div class="cap-name">mv-generation-sd2-二段式</div>
+            <div class="cap-desc">SD2 专用双节点，结构同主版本二段式但仅限 seedance_2_0。</div>
+            <div class="mockup">
+              <div class="skill-flow">
+                <span class="skill-step s">planner</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span class="skill-step t">generator</span>
+                <span class="flow-arrow">&rarr;</span>
+                <span style="font-size:9px;color:var(--teal-dark);font-weight:500">sd2.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

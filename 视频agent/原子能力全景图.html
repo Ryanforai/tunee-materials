@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tunee MV Agent — 原子能力全景图</title>
+  <style>
+    :root {
+      --bg: #F5F2EC;
+      --surface: #FFFFFF;
+      --surface-muted: #EDE8DD;
+      --border: #E6E0D4;
+      --border-strong: #D9D1BE;
+      --text: #1C1A17;
+      --text-70: #4A463F;
+      --text-50: #7A7568;
+      --text-30: #A6A094;
+      --c-accent: #C44A2E;
+      --c-accent-soft: #F7E3DB;
+      --c-accent-tint: #FBEFE9;
+      --c-halo: rgba(196, 74, 46, 0.28);
+      /* Layer colors */
+      --l0: #C44A2E; --l0-bg: #FBEFE9; --l0-border: #F0D0C0;
+      --l1: #2E86C4; --l1-bg: #E8F2FB; --l1-border: #C0D8F0;
+      --l2: #2EAA7A; --l2-bg: #E8F8F0; --l2-border: #B0E8D0;
+      --l3: #8B5FCF; --l3-bg: #F0E8FA; --l3-border: #D8C0F0;
+      --l4: #C48B2E; --l4-bg: #FBF3E9; --l4-border: #F0D8B0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.5;
+      padding: 0;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .page-header__logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--c-accent); color: white;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 16px;
+    }
+    .page-header__title { font-size: 18px; font-weight: 600; }
+    .page-header__sub { font-size: 13px; color: var(--text-50); margin-left: 8px; }
+    .page-header__badge {
+      margin-left: auto;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 12px; border-radius: 999px;
+      background: var(--c-accent-soft); color: var(--c-accent);
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex; gap: 20px; padding: 12px 32px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .legend__item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-70); }
+    .legend__dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* ── Stats bar ── */
+    .stats {
+      display: flex; gap: 24px; padding: 16px 32px;
+      background: var(--surface-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats__card {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 24px; border-radius: 8px; background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .stats__num { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .stats__label { font-size: 11px; color: var(--text-50); margin-top: 2px; }
+
+    /* ── Layer section ── */
+    .layer {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .layer:nth-child(even) { background: var(--surface); }
+    .layer:nth-child(odd) { background: var(--bg); }
+
+    .layer__head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px;
+    }
+    .layer__badge {
+      font-size: 13px; font-weight: 700;
+      padding: 4px 10px; border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .layer__title { font-size: 20px; font-weight: 700; }
+    .layer__verb { font-size: 14px; color: var(--text-50); margin-left: 4px; }
+    .layer__desc { font-size: 13px; color: var(--text-50); margin-top: 4px; }
+
+    /* ── Capability cards grid ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border-radius: 10px;
+      border: 1px solid;
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      transition: box-shadow 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+    .card__top { display: flex; align-items: center; gap: 8px; padding-left: 4px; }
+    .card__id {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 2px 6px; border-radius: 4px;
+      min-width: 28px; text-align: center;
+    }
+    .card__name {
+      font-size: 13px; font-weight: 600;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+    .card__prio {
+      margin-left: auto;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .card__prio[data-level="P0"] { background: #FDE8E8; color: #C53030; }
+    .card__prio[data-level="P1"] { background: #FFF3CD; color: #856404; }
+    .card__prio[data-level="P2"] { background: #E8F5E9; color: #2E7D32; }
+
+    .card__desc {
+      font-size: 12.5px; color: var(--text-70); line-height: 1.5;
+      padding-left: 4px;
+    }
+
+    .card__io {
+      display: flex; gap: 8px; padding-left: 4px;
+      font-size: 11px;
+    }
+    .card__io-label {
+      padding: 2px 6px; border-radius: 4px;
+      font-weight: 600; font-size: 10px;
+    }
+    .card__io-label.input { background: var(--surface-muted); color: var(--text-50); }
+    .card__io-label.output { background: var(--surface-muted); color: var(--text-50); }
+    .card__io-text { color: var(--text-50); font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10.5px; }
+
+    .card__impl {
+      font-size: 11px; color: var(--text-30);
+      padding-left: 4px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .card__impl svg { width: 12px; height: 12px; }
+
+    /* ── Skill cards (L4) ── */
+    .skill-group { margin-bottom: 20px; }
+    .skill-group__title {
+      font-size: 15px; font-weight: 600; margin-bottom: 10px;
+      padding-left: 4px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .skill-group__title::before {
+      content: '';
+      width: 3px; height: 16px; border-radius: 2px;
+    }
+
+    .cards.skill-cards {
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    }
+
+    .skill-card {
+      border-radius: 10px;
+      border: 1px dashed;
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+      position: relative;
+    }
+    .skill-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+      border-radius: 10px 0 0 10px;
+    }
+    .skill-card__top { display: flex; align-items: center; gap: 8px; }
+    .skill-card__id {
+      font-size: 11px; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .skill-card__name {
+      font-size: 12.5px; font-weight: 600;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+    .skill-card__desc {
+      font-size: 12px; color: var(--text-70); line-height: 1.5;
+    }
+    .skill-card__flow {
+      font-size: 11px; color: var(--text-50);
+      padding: 6px 8px; border-radius: 6px;
+      background: var(--surface-muted);
+      line-height: 1.6;
+    }
+
+    /* ── Layer-specific card colors ── */
+    .card.l0 { border-color: var(--l0-border); background: var(--l0-bg); }
+    .card.l0::before { background: var(--l0); }
+    .card.l0 .card__id { background: var(--l0); color: white; }
+    .card.l0 .card__name { color: var(--l0); }
+
+    .card.l1 { border-color: var(--l1-border); background: var(--l1-bg); }
+    .card.l1::before { background: var(--l1); }
+    .card.l1 .card__id { background: var(--l1); color: white; }
+    .card.l1 .card__name { color: var(--l1); }
+
+    .card.l2 { border-color: var(--l2-border); background: var(--l2-bg); }
+    .card.l2::before { background: var(--l2); }
+    .card.l2 .card__id { background: var(--l2); color: white; }
+    .card.l2 .card__name { color: var(--l2); }
+
+    .card.l3 { border-color: var(--l3-border); background: var(--l3-bg); }
+    .card.l3::before { background: var(--l3); }
+    .card.l3 .card__id { background: var(--l3); color: white; }
+    .card.l3 .card__name { color: var(--l3); }
+
+    .skill-card.l4 { border-color: var(--l4-border); background: var(--l4-bg); }
+    .skill-card.l4::before { background: var(--l4); }
+    .skill-card.l4 .skill-card__id { background: var(--l4); color: white; }
+    .skill-card.l4 .skill-card__name { color: var(--l4); }
+
+    .layer__badge.l0 { background: var(--l0-bg); color: var(--l0); }
+    .layer__badge.l1 { background: var(--l1-bg); color: var(--l1); }
+    .layer__badge.l2 { background: var(--l2-bg); color: var(--l2); }
+    .layer__badge.l3 { background: var(--l3-bg); color: var(--l3); }
+    .layer__badge.l4 { background: var(--l4-bg); color: var(--l4); }
+
+    .skill-group__title.l4 { color: var(--l4); }
+    .skill-group__title.l4::before { background: var(--l4); }
+
+    /* ── Footer ── */
+    .page-footer {
+      padding: 20px 32px; text-align: center;
+      font-size: 12px; color: var(--text-30);
+      background: var(--surface); border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .cards, .cards.skill-cards { grid-template-columns: 1fr; }
+      .stats { flex-wrap: wrap; gap: 12px; }
+      .page-header { padding: 12px 16px; }
+      .layer { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="page-header">
+  <div class="page-header__logo">T</div>
+  <span class="page-header__title">Tunee MV Agent</span>
+  <span class="page-header__sub">原子能力全景图</span>
+  <span class="page-header__badge">v1.0 · 2026-04-26</span>
+</header>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend__item"><div class="legend__dot" style="background:var(--l0)"></div>L0 模式层</div>
+  <div class="legend__item"><div class="legend__dot" style="background:var(--l1)"></div>L1 感知层</div>
+  <div class="legend__item"><div class="legend__dot" style="background:var(--l2)"></div>L2 画布层</div>
+  <div class="legend__item"><div class="legend__dot" style="background:var(--l3)"></div>L3 工具层</div>
+  <div class="legend__item"><div class="legend__dot" style="background:var(--l4)"></div>L4 技能层</div>
+  <div class="legend__item" style="margin-left:8px">
+    <span class="card__prio" data-level="P0" style="font-size:10px">P0</span> 阻塞 V1
+    <span class="card__prio" data-level="P1" style="font-size:10px;margin-left:6px">P1</span> 重要
+    <span class="card__prio" data-level="P2" style="font-size:10px;margin-left:6px">P2</span> 锦上添花
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stats__card"><span class="stats__num">5</span><span class="stats__label">层级</span></div>
+  <div class="stats__card"><span class="stats__num">22</span><span class="stats__label">原子能力</span></div>
+  <div class="stats__card"><span class="stats__num">13</span><span class="stats__label">Skill</span></div>
+  <div class="stats__card"><span class="stats__num">35</span><span class="stats__label">总计</span></div>
+  <div class="stats__card"><span class="stats__num">9</span><span class="stats__label">P0 关键能力</span></div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- L0: UI Mode -->
+<!-- ════════════════════════════════════════════ -->
+<section class="layer">
+  <div class="layer__head">
+    <span class="layer__badge l0">L0</span>
+    <span class="layer__title">UI 模式层</span>
+    <span class="layer__verb">—— "切"</span>
+  </div>
+  <div class="layer__desc">控制全屏对话 ↔ 30% 对话 + 70% 画布的切换，是 Agent 识别意图后第一个触发的能力。</div>
+  <div class="cards" style="margin-top:16px">
+    <div class="card l0">
+      <div class="card__top">
+        <span class="card__id">M1</span>
+        <span class="card__name">activate_workspace</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">检测到 MV 意图后，全屏对话变为 30% 对话 + 70% 画布。初始化第一个 Page 和默认 region 布局（music_area / proposal_area / visual_assets / timeline）。这是整个产品的"入口门"。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span>
+        <span class="card__io-text">intent_type, initial_layout?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span>
+        <span class="card__io-text">{ workspace_id }</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- L1: Perception -->
+<!-- ════════════════════════════════════════════ -->
+<section class="layer">
+  <div class="layer__head">
+    <span class="layer__badge l1">L1</span>
+    <span class="layer__title">感知层</span>
+    <span class="layer__verb">—— "读"</span>
+  </div>
+  <div class="layer__desc">输入是用户上传的内容，输出是结构化理解。LLM 无法直接"看到"或"听到"，需要预处理。</div>
+  <div class="cards" style="margin-top:16px">
+    <div class="card l1">
+      <div class="card__top">
+        <span class="card__id">P1</span>
+        <span class="card__name">read_asset</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">读取用户上传素材的基本信息（URL、类型、大小、元数据）。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">asset_id / URL</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ url, type, size, metadata }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg>存储 API</div>
+    </div>
+
+    <div class="card l1">
+      <div class="card__top">
+        <span class="card__id">P2</span>
+        <span class="card__name">analyze_music</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">分析音乐音频，提取 BPM、调性、情绪曲线、歌曲结构、能量曲线。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">audio_url, lyrics_text?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ bpm, key, duration, mood_curve, structure, energy_curve }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>音频分析 API</div>
+    </div>
+
+    <div class="card l1">
+      <div class="card__top">
+        <span class="card__id">P3</span>
+        <span class="card__name">parse_lyrics</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">解析歌词文本，对齐时间戳，识别语言、段落结构（Verse/Chorus/Bridge）。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">lyrics_text / lrc_url</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ language, lines: [{time, text}], structure }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>文本解析 + LLM</div>
+    </div>
+
+    <div class="card l1">
+      <div class="card__top">
+        <span class="card__id">P4</span>
+        <span class="card__name">analyze_image</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">理解图片内容：描述、主色、构图、人脸、风格标签。用于"帮我找类似风格参考"场景。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">image_url</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ description, colors, composition, faces[], style_tags }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>VLM API</div>
+    </div>
+
+    <div class="card l1">
+      <div class="card__top">
+        <span class="card__id">P5</span>
+        <span class="card__name">analyze_video</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">理解用户上传的参考视频：时长、帧率、分辨率、场景分段、运动强度。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">video_url</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ duration, fps, resolution, scenes[], motion_level }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>VLM API + ffprobe</div>
+    </div>
+
+    <div class="card l1">
+      <div class="card__top">
+        <span class="card__id">P6</span>
+        <span class="card__name">read_text_file</span>
+        <span class="card__prio" data-level="P2">P2</span>
+      </div>
+      <div class="card__desc">读取用户上传的文本文件（剧本、分镜描述等），识别编码和语言。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">text_url / text_content</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ content, encoding, language }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>文件读取</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- L2: Canvas Action -->
+<!-- ════════════════════════════════════════════ -->
+<section class="layer">
+  <div class="layer__head">
+    <span class="layer__badge l2">L2</span>
+    <span class="layer__title">画布操作层</span>
+    <span class="layer__verb">—— "放"</span>
+  </div>
+  <div class="layer__desc">不产生新内容，只决定内容在哪里、以什么形式展示。前端操作，由 Agent 触发。push_to_canvas 是唯一的前端同步通道。</div>
+  <div class="cards" style="margin-top:16px">
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C1</span>
+        <span class="card__name">push_to_canvas</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">将数据推送到画布的指定区域。唯一的前端同步通道 —— 所有工具产出都通过此通道推送。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">event_type, target_region, data</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>前端 EventBus</div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C2</span>
+        <span class="card__name">open_page</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">在画布上新开一个 Page（类似浏览器新标签页），用于同时做多首 MV。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">page_id, page_title, initial_content?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ page_id }</span>
+      </div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C3</span>
+        <span class="card__name">switch_page</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">切换到指定 Page，将画布焦点从一个 MV 项目转到另一个。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">page_id</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C4</span>
+        <span class="card__name">close_page</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">关闭一个 Page，释放对应画布工作区的资源。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">page_id</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C5</span>
+        <span class="card__name">list_pages</span>
+        <span class="card__prio" data-level="P2">P2</span>
+      </div>
+      <div class="card__desc">列出所有已打开的 Page，让 Agent 知道当前有哪些项目在进行。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">—</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">[{ page_id, title, thumbnail, status }]</span>
+      </div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C6</span>
+        <span class="card__name">focus_element</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">聚焦到画布上的某个元素 —— 缩放 + 居中，引导用户注意特定内容。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">element_id</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 12h4M17 12h4M12 3v4M12 17v4"/></svg>前端定位</div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C7</span>
+        <span class="card__name">update_element</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">更新画布上已有元素的部分属性（如替换视频 URL、修改标题）。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">element_id, patch_data</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C8</span>
+        <span class="card__name">remove_element</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">从画布移除元素，用户删除资产时同步清理。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">element_id</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+    </div>
+
+    <div class="card l2">
+      <div class="card__top">
+        <span class="card__id">C9</span>
+        <span class="card__name">layout_elements</span>
+        <span class="card__prio" data-level="P2">P2</span>
+      </div>
+      <div class="card__desc">在指定区域内按某种布局排列元素（网格、堆叠、时间线等）。视觉编排，非数据同步。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">region, layout_type, elements</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ success }</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- L3: External Tool -->
+<!-- ════════════════════════════════════════════ -->
+<section class="layer">
+  <div class="layer__head">
+    <span class="layer__badge l3">L3</span>
+    <span class="layer__title">外部工具层</span>
+    <span class="layer__verb">—— "做"</span>
+  </div>
+  <div class="layer__desc">真正产生新内容的能力，需要调用外部 API 或系统。这些是注册到 LLM tools 数组的核心工具。</div>
+  <div class="cards" style="margin-top:16px">
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T1</span>
+        <span class="card__name">generate_image</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">生成图片：角色参考图、场景图、分镜图、风格参考。支持 seed 控制随机性。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">prompt, asset_type, model?, seed?, size?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ image_url, seed, metadata }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 5-20s · 图片生成 API</div>
+    </div>
+
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T2</span>
+        <span class="card__name">generate_video</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">生成视频片段。异步任务，返回 task_id 用于轮询状态。支持 frame_url 指定首帧。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">video_prompt, frame_url?, duration, model?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ video_url / task_id, status }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 60-120s · 视频生成 API</div>
+    </div>
+
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T3</span>
+        <span class="card__name">run_ffmpeg</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">音视频处理：拼接多个视频片段、提取音频、转码、烧入字幕。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">input_urls, operation, params</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ output_url, metadata }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 1-30s · ffmpeg</div>
+    </div>
+
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T4</span>
+        <span class="card__name">evaluate_quality</span>
+        <span class="card__prio" data-level="P0">P0</span>
+      </div>
+      <div class="card__desc">质量检测：对生成的图片/视频评分，返回问题列表和改进建议。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">asset_url, asset_type, criteria?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ score, issues[], suggestion }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 3-10s · VLM API</div>
+    </div>
+
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T5</span>
+        <span class="card__name">web_search</span>
+        <span class="card__prio" data-level="P2">P2</span>
+      </div>
+      <div class="card__desc">搜索参考素材（MV 风格、导演作品、视觉参考）。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">query, source?, max_results?</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ references[] }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 2-8s · 搜索 API</div>
+    </div>
+
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T6</span>
+        <span class="card__name">lip_sync</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">口型同步：将视频中的嘴型对齐到音频。歌词驱动 MV 场景的核心能力。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">video_url, audio_url</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ video_url (synced), metadata }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 10-60s · Lip-Sync API</div>
+    </div>
+
+    <div class="card l3">
+      <div class="card__top">
+        <span class="card__id">T7</span>
+        <span class="card__name">face_swap</span>
+        <span class="card__prio" data-level="P1">P1</span>
+      </div>
+      <div class="card__desc">换脸 / 角色一致性：将参考面部特征迁移到目标视频，解决跨镜头"脸歪"问题。</div>
+      <div class="card__io">
+        <span class="card__io-label input">输入</span><span class="card__io-text">source_video_url, face_image_url</span>
+      </div>
+      <div class="card__io">
+        <span class="card__io-label output">输出</span><span class="card__io-text">{ video_url (swapped) }</span>
+      </div>
+      <div class="card__impl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>预计 10-30s · Face-Swap API</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- L4: Skill Composition -->
+<!-- ════════════════════════════════════════════ -->
+<section class="layer">
+  <div class="layer__head">
+    <span class="layer__badge l4">L4</span>
+    <span class="layer__title">技能组合层</span>
+    <span class="layer__verb">—— "编"</span>
+  </div>
+  <div class="layer__desc">Skill = LLM 推理 + 多个 Tool 的编排。是"半成品工作流"，注册为 Agent Node 而非 LLM Tool。不直接暴露给 LLM 的 tools 数组。</div>
+
+  <!-- 编排型 Skill -->
+  <div class="skill-group" style="margin-top:20px">
+    <div class="skill-group__title l4">编排型 Skill（6 个）</div>
+    <div class="cards skill-cards">
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S1</span>
+          <span class="skill-card__name">generate_proposals</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">"帮我做个 MV"时触发。音乐分析 → Agent 构思 3 个方案 → 生成角色/场景图 → 汇总提案。</div>
+        <div class="skill-card__flow">P2 analyze_music → LLM 构思 → S11/S12 × 6 → C1 push_to_canvas → 输出 proposals[]</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S2</span>
+          <span class="skill-card__name">mv_planner</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">方案确定后，校验时间轴 → 撰写每个 SHOT 的 treatment（文字分镜描述）。</div>
+        <div class="skill-card__flow">LLM 读取 mv_guide → 撰写 SHOT treatment → 输出文字分镜列表 → C1 push_to_canvas</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S3</span>
+          <span class="skill-card__name">mv_generator</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">分镜确定后，将 treatment 转化为 video_prompt + frame_prompt，输出结构化 JSON。</div>
+        <div class="skill-card__flow">treatment → LLM 构建 prompt → 输出 shot JSON[] → C1 push_to_canvas</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S4</span>
+          <span class="skill-card__name">video_generation</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">逐 shot 调用视频生成 → 自动质检 → 推送到画布时间线。</div>
+        <div class="skill-card__flow">逐 shot: T2 generate_video → T4 evaluate_quality → C1 push_to_canvas("video_clip_progress") → 全部完成 push_to_canvas("video_clips_ready")</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S5</span>
+          <span class="skill-card__name">revise_shot</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">单镜头修改：定位目标 → 理解用户修改意图 → 重新生成 → 推送更新。</div>
+        <div class="skill-card__flow">P1 read_asset → LLM 分析意图 → T1 generate_image → T2 generate_video → T4 evaluate_quality → C7 update_element</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S6</span>
+          <span class="skill-card__name">export_mv</span>
+          <span class="card__prio" data-level="P1" style="margin-left:auto">P1</span>
+        </div>
+        <div class="skill-card__desc">导出成片：拼接所有镜头 → 烧入字幕 → 转码为 MP4。</div>
+        <div class="skill-card__flow">T3 ffmpeg(concat) → T3 ffmpeg(add_subtitles) → T3 ffmpeg(convert) → 输出 final video</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 创意分析 Skill -->
+  <div class="skill-group">
+    <div class="skill-group__title l4">创意分析 Skill（4 个模式）</div>
+    <div class="cards skill-cards">
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S7</span>
+          <span class="skill-card__name">creative_analysis_story</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">故事模式：通过角色动作和故事推进让 MV 难忘，遵循现实物理规则。</div>
+        <div class="skill-card__flow">音乐分析 + 用户意图 → LLM 叙事设计 → 输出 mv_guide JSON (story) → 时长 4-15s</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S8</span>
+          <span class="skill-card__name">creative_analysis_visions</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">异世界模式：把角色放入不可能存在的世界，每帧都是前所未见的视觉奇观。</div>
+        <div class="skill-card__flow">音乐分析 + 用户意图 → LLM 异世界设计 → 输出 mv_guide JSON (visions) → 时长 4-15s</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S9</span>
+          <span class="skill-card__name">creative_analysis_lipsync</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">口型同步模式：按 video_model 分段规则生成镜头序列（infinite_talk / wan / seedance / kling）。</div>
+        <div class="skill-card__flow">音乐分析 + 歌词 + 用户意图 → LLM 对口型设计 → 输出 mv_guide JSON (lipsync) → 按模型分段</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S10</span>
+          <span class="skill-card__name">creative_analysis_clone</span>
+          <span class="card__prio" data-level="P1" style="margin-left:auto">P1</span>
+        </div>
+        <div class="skill-card__desc">复刻模式：基于参考 MV 的视觉 DNA，重组到新歌时间轴上。</div>
+        <div class="skill-card__flow">参考 MV 分析 + 新歌分析 → LLM 提取 DNA → 重组到新时间轴 → 输出 mv_guide JSON (clone)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 资产生成 Skill -->
+  <div class="skill-group">
+    <div class="skill-group__title l4">资产生成 Skill（3 个）</div>
+    <div class="cards skill-cards">
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S11</span>
+          <span class="skill-card__name">asset_generation_character</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">角色图提示词生成。基于 9 维度电影感框架产出 Midjourney / SD 兼容的 prompt。</div>
+        <div class="skill-card__flow">主题 → 景别 → 构图 → 焦段+虚实 → 明暗骨架 → 冷暖阶级 → 逻辑验证 → 相机+胶片 → 神态+气质 → T1 generate_image</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S12</span>
+          <span class="skill-card__name">asset_generation_scene</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">场景图提示词生成。同上 9 维度框架，聚焦场景构建（地点/氛围/光线/透视关系）。</div>
+        <div class="skill-card__flow">主题 → 景别 → 构图 → 焦段+虚实 → 明暗骨架 → 冷暖阶级 → 逻辑验证 → 相机+胶片 → 神态+气质 → T1 generate_image</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id">S13</span>
+          <span class="skill-card__name">cinematic_prompt_generator</span>
+          <span class="card__prio" data-level="P1" style="margin-left:auto">P1</span>
+        </div>
+        <div class="skill-card__desc">电影感图片提示词总 Skill。适用于 MJ/SD 等工具，支持参考图反向分析。</div>
+        <div class="skill-card__flow">描述/参考图 → 逐模块查阅词库 → 9 维度构建 prompt → 输出完整生成 prompt</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 视频生成 Skill 节点 -->
+  <div class="skill-group">
+    <div class="skill-group__title l4">视频生成 Skill 节点（4 个版本）</div>
+    <div class="cards skill-cards">
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id" style="background:var(--l4);color:white;font-size:10px;padding:2px 6px;border-radius:4px;">V1</span>
+          <span class="skill-card__name">mv-generation-一段式</span>
+          <span class="card__prio" data-level="P0" style="margin-left:auto">P0</span>
+        </div>
+        <div class="skill-card__desc">单节点完整版，接收创意分析的 mv_guide JSON，逐 shot 输出分镜脚本 JSON。</div>
+        <div class="skill-card__flow">Unwrap → Normalize → Dispatch → 4 模型: infinite_talk / wan_video_2_7 / seedance_2_0 / kling_3_0_omni</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id" style="background:var(--l4);color:white;font-size:10px;padding:2px 6px;border-radius:4px;">V2</span>
+          <span class="skill-card__name">mv-generation-二段式</span>
+          <span class="card__prio" data-level="P1" style="margin-left:auto">P1</span>
+        </div>
+        <div class="skill-card__desc">planner + generator 双节点拆分，先输出文字 treatment 再生成 JSON。</div>
+        <div class="skill-card__flow">planner: SUMMARIZE + DIRECTING + SHOT → generator: video_prompt + frame_prompt → 同 4 模型</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id" style="background:var(--l4);color:white;font-size:10px;padding:2px 6px;border-radius:4px;">SD2</span>
+          <span class="skill-card__name">mv-generation-sd2-一段式</span>
+          <span class="card__prio" data-level="P1" style="margin-left:auto">P1</span>
+        </div>
+        <div class="skill-card__desc">Seedance 2.0 专用单节点，仅支持 story/visions/clone，4-15s。</div>
+        <div class="skill-card__flow">Unwrap → Normalize → Timeline Normalize → Rendering Family → Dispatch → seedance_2_0</div>
+      </div>
+
+      <div class="skill-card l4">
+        <div class="skill-card__top">
+          <span class="skill-card__id" style="background:var(--l4);color:white;font-size:10px;padding:2px 6px;border-radius:4px;">SD2</span>
+          <span class="skill-card__name">mv-generation-sd2-二段式</span>
+          <span class="card__prio" data-level="P1" style="margin-left:auto">P1</span>
+        </div>
+        <div class="skill-card__desc">SD2 专用双节点，结构同主版本二段式但仅限 seedance_2_0。</div>
+        <div class="skill-card__flow">planner → generator → seedance_2_0 专用渲染</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="page-footer">
+  Tunee MV Agent · 原子能力全景图 · 22 个原子能力 + 13 个 Skill = 35 个总计 · v1.0 · 2026-04-26
+</footer>
+
+</body>
+</html>

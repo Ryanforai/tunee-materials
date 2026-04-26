@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tunee · Page 沙盒 v5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #F5F2EC;
+    --bg-tab-strip: #E8E2D5;
+    --bg-log: #FBF9F4;
+    --bg-canvas: #EEEAE0;
+    --bg-card: #FFFFFF;
+    --bg-music: #1C1A17;
+    --bg-music-surface: #2A2723;
+    --bg-island-neutral: #EEEAE0;
+    --bg-island-coral: #FAECE7;
+    --bg-island-purple: #EDECFE;
+    --bg-island-teal: #E1F5EE;
+    --bg-island-pink: #FBEAF0;
+    --bg-bubble-user: #EDEAF5;
+    --bg-bubble-sage: #F0F4EB;
+    --border: rgba(28, 26, 23, 0.08);
+    --border-hover: rgba(28, 26, 23, 0.2);
+    --text-primary: #1C1A17;
+    --text-secondary: #6F6A5E;
+    --text-tertiary: #A9A399;
+    --text-dark-primary: #FAF7F0;
+    --text-dark-secondary: #A9A399;
+    --accent: #C44A2E;
+    --accent-soft: #F0997B;
+    --accent-ghost: #FCE5DC;
+    --coral-dark: #712B13;
+    --purple-primary: #534AB7;
+    --purple-dark: #3C3489;
+    --purple-soft: #AFA9EC;
+    --teal-primary: #1D9E75;
+    --teal-dark: #0F6E56;
+    --teal-soft: #5DCAA5;
+    --pink-primary: #D4537E;
+    --pink-dark: #993556;
+    --pink-soft: #ED93B1;
+    --amber-bg: #FAEEDA;
+    --amber-border: #BA7517;
+    --amber-text: #854F0B;
+    --sage-green: #639922;
+    --upload-bg: #EDEAF5;
+    --upload-text: #3C3489;
+    --import-bg: #E1F5EE;
+    --import-text: #0F6E56;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 999px;
+    --shadow-float: 0 1px 2px rgba(28,26,23,0.04), 0 4px 14px rgba(28,26,23,0.05);
+  }
+  
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    overflow: hidden;
+  }
+  
+  /* ——— Tab bar (browser-like) ——— */
+  .tab-bar {
+    display: flex;
+    align-items: flex-end;
+    background: var(--bg-tab-strip);
+    padding: 8px 8px 0;
+    gap: 2px;
+    min-height: 42px;
+  }
+  .tab-logo {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-md);
+    background: #1C1A17;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif;
+    font-weight: 500;
+    font-size: 14px;
+    margin-right: 10px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px 9px 12px;
+    background: transparent;
+    border: 0.5px solid transparent;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    max-width: 220px;
+    min-width: 100px;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .tab:hover:not(.active) {
+    background: rgba(255,255,255,0.35);
+    color: var(--text-primary);
+  }
+  .tab.active {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-weight: 500;
+    border-color: var(--border);
+  }
+  /* Active tab connects seamlessly to content */
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--bg);
+  }
+  .tab-icon {
+    width: 14px; height: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .tab-icon.music { color: var(--purple-primary); }
+  .tab-icon.mv { color: var(--accent); }
+  .tab-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tab-close {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+    flex-shrink: 0;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .tab:hover .tab-close { opacity: 1; }
+  .tab-close:hover { background: rgba(0,0,0,0.1); }
+  .tab-add {
+    width: 28px; height: 28px;
+    margin-left: 4px;
+    margin-bottom: 4px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .tab-add:hover { background: rgba(255,255,255,0.5); color: var(--text-primary); }
+  .tab-bar-right {
+    margin-left: auto;
+    padding: 0 12px 4px 0;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    align-self: center;
+  }
+  
+  /* ——— App sub-header (hint) ——— */
+  .app-sub {
+    padding: 6px 20px;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+  }
+  .app-sub kbd {
+    background: var(--bg-island-neutral);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-family: inherit;
+    color: var(--text-secondary);
+  }
+  
+  /* ——— Action bar ——— */
+  .action-bar {
+    padding: 10px 22px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .action-bar.music-mode {
+    background: var(--bg-music);
+    border-bottom-color: rgba(255,255,255,0.08);
+  }
+  .action-row {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .group-title {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 1px;
+    font-weight: 500;
+    padding-right: 4px;
+    min-width: 60px;
+  }
+  .action-bar.music-mode .group-title { color: var(--text-dark-secondary); }
+  .sep {
+    width: 1px; height: 14px;
+    background: var(--border);
+    margin: 0 3px;
+  }
+  .action-bar.music-mode .sep { background: rgba(255,255,255,0.12); }
+  .sub-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin-right: 2px;
+  }
+  .action-bar.music-mode .sub-label { color: var(--text-dark-secondary); }
+  
+  .btn {
+    padding: 5px 10px;
+    border-radius: var(--radius-pill);
+    border: 0.5px solid var(--border);
+    background: #fff;
+    font-family: inherit;
+    font-size: 11.5px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .btn:hover:not(:disabled) { border-color: var(--border-hover); background: #FDFBF7; }
+  .btn:active:not(:disabled) { transform: translateY(0.5px); }
+  .btn:disabled { opacity: 0.28; cursor: not-allowed; }
+  .btn.primary { background: #1C1A17; color: #fff; border-color: #1C1A17; }
+  .btn.primary:hover:not(:disabled) { background: #000; }
+  .btn.subtle { background: transparent; border: 0.5px dashed var(--border); }
+  .btn.upload { background: #F7F4FA; border-color: transparent; color: var(--upload-text); }
+  .btn.upload:hover:not(:disabled) { background: #F0ECF5; border-color: var(--border); }
+  .btn.import { background: #ECF6F1; border-color: transparent; color: var(--import-text); }
+  .btn.import:hover:not(:disabled) { background: #DFF0E7; border-color: var(--border); }
+  
+  .playing-chip {
+    font-size: 11px;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 9px;
+    background: var(--accent-ghost);
+    border-radius: var(--radius-pill);
+  }
+  .playing-chip .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 0.9s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  
+  /* ——— Import dropdown ——— */
+  .import-dropdown {
+    position: absolute;
+    background: #fff;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
+    padding: 6px;
+    z-index: 100;
+    min-width: 280px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .import-dropdown .import-group {
+    padding: 6px 8px 4px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .import-dropdown .import-item {
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .import-dropdown .import-item:hover { background: var(--bg-island-neutral); }
+  .import-dropdown .import-item .ic {
+    width: 20px; height: 20px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500;
+    font-family: "Fraunces", serif;
+    background: var(--accent-ghost);
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .import-dropdown .import-item .name { flex: 1; }
+  .import-dropdown .import-item .kind {
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+  .import-dropdown .import-empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+  
+  /* ——— Main ——— */
+  .main {
+    display: grid;
+    grid-template-columns: 310px 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .main.music-mode {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ——— Log ——— */
+  .log-panel {
+    background: var(--bg-log);
+    border-right: 0.5px solid var(--border);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .log-head {
+    padding: 12px 18px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .log-head .title-s { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+  .log-head .count { font-size: 10px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  .log-list {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 18px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #D8D2C6 transparent;
+  }
+  .log-list::-webkit-scrollbar { width: 5px; }
+  .log-list::-webkit-scrollbar-thumb { background: #D8D2C6; border-radius: 3px; }
+  .log-empty {
+    margin: auto;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-align: center;
+    padding: 20px;
+  }
+  .msg {
+    display: flex; gap: 9px; align-items: flex-start;
+    animation: msgIn 0.3s ease both;
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .avatar.tunee { background: #1C1A17; color: #fff; font-family: "Fraunces", serif; }
+  .avatar.sage { background: var(--bg-bubble-sage); color: var(--sage-green); }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-name { font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-bottom: 3px; }
+  .msg-text { font-size: 12.5px; line-height: 1.6; color: var(--text-primary); }
+  .msg.user { justify-content: flex-end; }
+  .msg.user .msg-body { max-width: 88%; }
+  .msg.user .bubble {
+    background: var(--bg-bubble-user);
+    padding: 7px 12px;
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  
+  /* ——— MV page right column ——— */
+  .page-area {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  /* ——— Song anchor (top of MV page) ——— */
+  .song-anchor {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 24px;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    min-height: 72px;
+  }
+  .anchor-cover {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--accent), #D85A30);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: "Fraunces", serif;
+    font-weight: 500;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .anchor-info { flex-shrink: 0; min-width: 140px; }
+  .anchor-title {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.1px;
+  }
+  .anchor-sub {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .anchor-sub .link {
+    color: var(--purple-dark);
+    cursor: pointer;
+  }
+  .anchor-sub .link:hover { text-decoration: underline; }
+  .anchor-wave {
+    flex: 1;
+    min-width: 120px;
+    max-width: 280px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .anchor-curve {
+    flex: 1;
+    min-width: 140px;
+    max-width: 340px;
+    height: 36px;
+    position: relative;
+  }
+  .anchor-curve-labels {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: -14px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5px;
+    color: var(--text-tertiary);
+  }
+  .anchor-meta {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .anchor-locked {
+    padding: 3px 8px;
+    background: var(--bg-island-neutral);
+    border-radius: var(--radius-pill);
+    font-size: 10px;
+    color: var(--text-secondary);
+    display: flex; align-items: center; gap: 4px;
+  }
+  
+  /* ——— Canvas ——— */
+  .canvas-head {
+    padding: 9px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg);
+    min-height: 40px;
+    flex-wrap: wrap;
+  }
+  .canvas-head .left { display: flex; align-items: baseline; gap: 10px; }
+  .h-title { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .h-sub { font-size: 10px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  
+  .version-selector { display: flex; align-items: center; gap: 5px; }
+  .version-selector .label {
+    font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.3px; margin-right: 3px;
+  }
+  .version-chip {
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    cursor: pointer;
+    border: 0.5px solid transparent;
+    background: var(--bg-island-neutral);
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .version-chip:hover { border-color: var(--border); }
+  .version-chip.active {
+    background: #fff; color: var(--text-primary); font-weight: 500;
+    border-color: var(--border-hover);
+  }
+  .version-chip.coral.active { background: var(--bg-island-coral); color: var(--coral-dark); border-color: var(--accent-soft); }
+  .version-chip.purple.active { background: var(--bg-island-purple); color: var(--purple-dark); border-color: var(--purple-soft); }
+  .version-chip.teal.active { background: var(--bg-island-teal); color: var(--teal-dark); border-color: var(--teal-soft); }
+  .version-chip.pink.active { background: var(--bg-island-pink); color: var(--pink-dark); border-color: var(--pink-soft); }
+  
+  .canvas-wrap {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+  }
+  .canvas {
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    min-height: 0;
+    background-color: var(--bg-canvas);
+  }
+  .canvas.dragging { cursor: grabbing; user-select: none; }
+  .canvas.dragging * { user-select: none; pointer-events: none; }
+  .canvas-content {
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: 0 0;
+    transition: transform 0.3s cubic-bezier(.3,.9,.3,1);
+    background-image: radial-gradient(circle, rgba(28,26,23,0.09) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .canvas.dragging .canvas-content { transition: none; }
+  .canvas-lines {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .canvas-controls {
+    position: absolute;
+    bottom: 16px; right: 18px;
+    display: flex; gap: 2px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    padding: 3px;
+    box-shadow: var(--shadow-float);
+    z-index: 5;
+  }
+  .ctrl {
+    width: 28px; height: 28px;
+    border: none; background: transparent;
+    cursor: pointer; color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit; font-size: 14px;
+    transition: background 0.15s;
+  }
+  .ctrl:hover { background: var(--bg-island-neutral); color: var(--text-primary); }
+  .ctrl.zoom-level {
+    width: auto; min-width: 42px;
+    padding: 0 6px; font-size: 10px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    pointer-events: none;
+  }
+  .canvas-empty {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 40px 32px;
+    text-align: center;
+    color: var(--text-tertiary);
+    border: 1px dashed #C6C0B2;
+    border-radius: var(--radius-lg);
+    font-size: 12px;
+    background: rgba(255,255,255,0.65);
+    max-width: 440px;
+  }
+  .canvas-empty .hl {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 13px;
+  }
+  
+  /* ——— Islands + Cards (same as v4 mostly) ——— */
+  .island {
+    position: absolute;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-float);
+    animation: islandIn 0.4s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes islandIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .island-header {
+    padding: 9px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 12px; font-weight: 500;
+  }
+  .island-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .island-sub { font-size: 10px; opacity: 0.7; font-weight: 400; margin-left: 2px; }
+  .island.neutral .island-header { background: var(--bg-island-neutral); color: var(--text-primary); }
+  .island.neutral .island-dot { background: #6F6A5E; }
+  .island.coral .island-header { background: var(--bg-island-coral); color: var(--coral-dark); }
+  .island.coral .island-dot { background: var(--accent); }
+  .island.purple .island-header { background: var(--bg-island-purple); color: var(--purple-dark); }
+  .island.purple .island-dot { background: var(--purple-primary); }
+  .island.teal .island-header { background: var(--bg-island-teal); color: var(--teal-dark); }
+  .island.teal .island-dot { background: var(--teal-primary); }
+  .island.pink .island-header { background: var(--bg-island-pink); color: var(--pink-dark); }
+  .island.pink .island-dot { background: var(--pink-primary); }
+  .island-body {
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .cluster { display: flex; flex-direction: column; gap: 5px; }
+  .cluster-label {
+    font-size: 9px; color: var(--text-tertiary);
+    letter-spacing: 0.8px; font-weight: 500; text-transform: uppercase;
+  }
+  .card-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  
+  .card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    transition: border-color 0.15s, transform 0.2s;
+    position: relative;
+    animation: cardIn 0.32s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(4px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card:hover { border-color: var(--border-hover); }
+  .card.is-new {
+    box-shadow: 0 0 0 2px var(--accent-ghost), 0 0 0 3px var(--accent-soft);
+  }
+  .card.cascade-created {
+    border: 0.5px dashed var(--border-hover);
+    background: #FDFBF7;
+  }
+  .cascade-badge {
+    position: absolute;
+    top: -7px; right: 10px;
+    font-size: 9px;
+    padding: 1px 6px;
+    background: #fff;
+    color: var(--text-tertiary);
+    border: 0.5px solid var(--border);
+    border-radius: 3px;
+  }
+  .card-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.6px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .source-pill {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--upload-bg);
+    color: var(--upload-text);
+    letter-spacing: 0;
+    font-weight: 500;
+    text-transform: none;
+  }
+  .source-pill.import {
+    background: var(--import-bg);
+    color: var(--import-text);
+  }
+  .imported-from {
+    font-size: 9px;
+    color: var(--import-text);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.75;
+  }
+  .card-title { font-size: 12px; font-weight: 500; }
+  
+  .card.character {
+    width: 96px; text-align: center; padding: 10px 8px;
+  }
+  .char-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent-ghost);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px;
+    font-size: 12px; font-weight: 500;
+    font-family: "Fraunces", serif;
+  }
+  .char-avatar.user-src { background: var(--upload-bg); color: var(--upload-text); }
+  .char-avatar.import-src { background: var(--import-bg); color: var(--import-text); }
+  .char-name { font-size: 11px; font-weight: 500; }
+  .char-tag { font-size: 9px; color: var(--text-tertiary); margin-top: 1px; }
+  
+  .card.scene { width: 124px; }
+  .scene-img {
+    height: 40px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scene-img .photo-icon {
+    position: absolute; top: 4px; right: 4px;
+    color: rgba(255,255,255,0.85);
+  }
+  .scene-name { font-size: 11px; font-weight: 500; }
+  
+  .card.ref-video { width: 136px; }
+  .ref-thumb {
+    height: 56px;
+    background: linear-gradient(135deg, #2C2C2A, #5F5E5A);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ref-thumb .play {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ref-thumb.film { background: linear-gradient(135deg, #3C3489, #7F77DD); }
+  .ref-thumb.style { background: linear-gradient(135deg, #0F6E56, #5DCAA5); }
+  .ref-name { font-size: 11px; font-weight: 500; }
+  .ref-tag { font-size: 9px; color: var(--text-tertiary); margin-top: 1px; }
+  
+  .card.script { padding: 12px 14px; }
+  .card.script.modified { border: 1px dashed var(--amber-border); }
+  .card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px;
+  }
+  .mod-chip {
+    font-size: 9px;
+    padding: 2px 7px;
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+  .script-line {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2px;
+  }
+  .script-line.updated { color: var(--text-primary); }
+  
+  .card.storyboard { padding: 12px 14px; }
+  .shots { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .shot {
+    flex: 1 1 84px;
+    min-height: 68px;
+    border-radius: var(--radius-sm);
+    padding: 7px 5px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px;
+    position: relative;
+    background: #F7F4ED;
+    border: 0.5px dashed #C6C0B2;
+    transition: all 0.2s;
+  }
+  .shot.is-new { animation: shotPulse 1.3s ease; }
+  @keyframes shotPulse {
+    0% { box-shadow: 0 0 0 0 var(--accent-soft); }
+    40% { box-shadow: 0 0 0 4px rgba(240, 153, 123, 0.3); }
+    100% { box-shadow: 0 0 0 0 rgba(240, 153, 123, 0); }
+  }
+  .shot-label { font-size: 10px; font-weight: 500; color: var(--text-primary); }
+  .shot-status { font-size: 9px; color: var(--text-tertiary); }
+  .shot.video.coral { background: #FDF4EF; border: 0.5px solid var(--accent-soft); }
+  .shot.video.coral .shot-status { color: var(--coral-dark); }
+  .shot.video.purple { background: #F5F4FE; border: 0.5px solid var(--purple-soft); }
+  .shot.video.purple .shot-status { color: var(--purple-dark); }
+  .shot.video.teal { background: #EAF8F1; border: 0.5px solid var(--teal-soft); }
+  .shot.video.teal .shot-status { color: var(--teal-dark); }
+  .shot.video.pink { background: #FCF1F5; border: 0.5px solid var(--pink-soft); }
+  .shot.video.pink .shot-status { color: var(--pink-dark); }
+  .shot.stale { background: var(--amber-bg); border: 1px dashed var(--amber-border); }
+  .shot.stale .shot-status { color: var(--amber-text); }
+  .stale-chip {
+    position: absolute;
+    top: -7px; right: -6px;
+    font-size: 9px;
+    padding: 1px 5px;
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    border: 0.5px solid var(--amber-border);
+    border-radius: 3px;
+    font-weight: 500;
+    z-index: 1;
+  }
+  
+  .card.direct-video { width: 180px; }
+  .direct-video-thumb {
+    height: 80px;
+    background: linear-gradient(135deg, #2C2C2A, #5F5E5A);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .direct-video-thumb .play {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .direct-video-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 3px;
+  }
+  .empty-version-hint {
+    font-size: 11px; color: var(--text-tertiary); padding: 6px 2px;
+  }
+  
+  /* ——— Music page view ——— */
+  .music-page {
+    background: var(--bg-music);
+    color: var(--text-dark-primary);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 60px 40px 80px;
+  }
+  .music-hero {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .music-big-play {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 8px 40px rgba(196, 74, 46, 0.4);
+  }
+  .music-big-play:hover { transform: scale(1.04); }
+  .music-title-big {
+    font-family: "Fraunces", serif;
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+  .music-subtitle {
+    font-size: 13px;
+    color: var(--text-dark-secondary);
+    letter-spacing: 0.5px;
+  }
+  .music-wave-big {
+    width: 100%;
+    max-width: 520px;
+    height: 48px;
+    display: flex; align-items: center; gap: 3px;
+    justify-content: center;
+  }
+  .music-wave-big .bar {
+    width: 3px;
+    background: rgba(196, 74, 46, 0.7);
+    border-radius: 2px;
+  }
+  .music-cta {
+    margin-top: 16px;
+    padding: 11px 22px;
+    background: #FAF7F0;
+    color: #1C1A17;
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .music-cta:hover { background: #fff; transform: translateY(-1px); }
+  .music-cta.secondary {
+    background: transparent;
+    color: var(--text-dark-primary);
+    border: 0.5px solid rgba(255,255,255,0.2);
+    margin-top: 0;
+  }
+  .music-cta.secondary:hover { background: rgba(255,255,255,0.05); transform: none; }
+  
+  .music-sections {
+    margin-top: 80px;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .music-section {
+    background: var(--bg-music-surface);
+    border: 0.5px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+  }
+  .music-section .sec-label {
+    font-size: 10px;
+    color: var(--text-dark-secondary);
+    letter-spacing: 1px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .music-section .sec-content {
+    font-size: 12.5px;
+    color: var(--text-dark-primary);
+    line-height: 1.7;
+    opacity: 0.8;
+  }
+  .music-section .sec-ph {
+    color: var(--text-dark-secondary);
+    font-style: italic;
+    opacity: 0.55;
+  }
+  
+  .music-linked-mvs {
+    margin-top: 50px;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .music-linked-mvs .label {
+    font-size: 10px;
+    color: var(--text-dark-secondary);
+    letter-spacing: 1px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .linked-mv-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .linked-mv-chip {
+    padding: 7px 14px;
+    background: var(--bg-music-surface);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--text-dark-primary);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.15s;
+  }
+  .linked-mv-chip:hover {
+    background: #3A362F;
+    border-color: rgba(255,255,255,0.14);
+  }
+  
+  @media (max-width: 1200px) {
+    .main { grid-template-columns: 280px 1fr; }
+  }
+  @media (max-width: 1000px) {
+    .tab-name { max-width: 120px; }
+    .song-anchor { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tab-bar" id="tab-bar">
+  <div class="tab-logo">T</div>
+  <!-- tabs dynamically -->
+</div>
+
+<div class="app-sub">
+  <span>拖拽平移 · <kbd>Cmd</kbd>+滚轮缩放 · <kbd>F</kbd> 贴合</span>
+</div>
+
+<div class="action-bar" id="action-bar">
+  <!-- dynamic based on page type -->
+</div>
+
+<div class="main" id="main">
+  <!-- dynamic: chat + canvas for MV; full music for music -->
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const qs = sel => document.querySelector(sel);
+  const h = (tag, attrs = {}, ...children) => {
+    const el = document.createElement(tag);
+    for (const k in attrs) {
+      if (k === 'class') el.className = attrs[k];
+      else if (k === 'style') el.style.cssText = attrs[k];
+      else if (k === 'html') el.innerHTML = attrs[k];
+      else if (k.startsWith('on') && typeof attrs[k] === 'function') {
+        el.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+      }
+      else el.setAttribute(k, attrs[k]);
+    }
+    children.flat().forEach(c => {
+      if (c == null) return;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return el;
+  };
+  
+  const VERSION_COLORS = ['coral', 'purple', 'teal', 'pink'];
+  const VERSION_NAMES = ['原版', '复古版', '电影感版', '像素风版'];
+  const CHARACTER_NAMES = ['Lumi', '男友', '外婆', '路人', '小孩', '店主'];
+  const CHARACTER_TAGS = ['主角 · 清冷', '配角 · 温柔', '配角 · 回忆', '群演', '背景', '过场'];
+  const SCENE_NAMES = ['老客厅', '夕阳胡同', '天台', '地铁站', '便利店'];
+  const SCENE_GRADS = [
+    ['#F8D8B7', '#F0997B'],['#FAC775', '#D85A30'],['#CECBF6', '#7F77DD'],
+    ['#B5D4F4', '#378ADD'],['#F4C0D1', '#D4537E']
+  ];
+  const REF_VIDEO_PURPOSES = [
+    { tag: '视频复刻', style: 'film' },
+    { tag: '风格参考', style: 'style' },
+    { tag: '分镜参考', style: '' }
+  ];
+  const COL_HEX = {coral:'#C44A2E', purple:'#534AB7', teal:'#1D9E75', pink:'#D4537E'};
+  const COL_SOFT = {coral:'#F0997B', purple:'#AFA9EC', teal:'#5DCAA5', pink:'#ED93B1'};
+  
+  const PADDING = 60, GAP = 48, SHARED_W = 640, VERSION_W = 520, DV_W = 260;
+  
+  // ——— Multi-page state ———
+  let pages = [];
+  let activePageId = null;
+  let nextId = 1;
+  let busy = false;
+  let importDropdownOpen = false;
+  
+  function newId(){ return 'id' + (nextId++); }
+  
+  function freshMvState(){
+    return { shared: {characters:[], scenes:[], refVideos:[]}, versions:[], directVideos:[] };
+  }
+  
+  function freshPage(type, name, song){
+    return {
+      id: newId(),
+      type,
+      name,
+      song: song || null,
+      state: type === 'mv' ? freshMvState() : null,
+      log: [],
+      pan: {x: 0, y: 0, scale: 1},
+      currentVersionId: null
+    };
+  }
+  
+  function initPages(){
+    pages = [];
+    // Music page
+    const musicPage = freshPage('music', 'Orange Soda Spark');
+    pages.push(musicPage);
+    
+    // MV page for Orange Soda Spark (empty, main sandbox)
+    const mainMv = freshPage('mv', 'Orange Soda Spark', {
+      title: 'Orange Soda Spark',
+      duration: '0:30',
+      fromPageId: musicPage.id
+    });
+    pages.push(mainMv);
+    
+    // Prepopulated MV for 夜班司机 (has assets for cross-page import)
+    const nightMv = freshPage('mv', '夜班司机', {
+      title: '夜班司机',
+      duration: '1:24',
+      fromPageId: null
+    });
+    nightMv.state.shared.characters = [
+      { id: newId(), name: 'Lumi', tag: '主角 · 清冷', source: 'ai' },
+      { id: newId(), name: '司机大哥', tag: '配角 · 沉默', source: 'ai' }
+    ];
+    nightMv.state.shared.scenes = [
+      { id: newId(), name: '便利店', grad: SCENE_GRADS[4], source: 'ai' },
+      { id: newId(), name: '夜间高速', grad: SCENE_GRADS[2], source: 'user' }
+    ];
+    nightMv.state.shared.refVideos = [
+      { id: newId(), label: 'Ref 1', tag: '风格参考', style: 'style' }
+    ];
+    pages.push(nightMv);
+    
+    activePageId = mainMv.id;
+  }
+  
+  function getActivePage(){ return pages.find(p => p.id === activePageId); }
+  function getPage(id){ return pages.find(p => p.id === id); }
+  
+  // ——— MV page actions ———
+  function clearNewFlags(state){
+    if (!state) return;
+    [state.shared.characters, state.shared.scenes, state.shared.refVideos, state.directVideos]
+      .forEach(c => c.forEach(x => x.n = false));
+    state.versions.forEach(v => {
+      if (v.script) v.script.n = false;
+      if (v.storyboard) {
+        v.storyboard.n = false;
+        v.storyboard.shots.forEach(s => s.n = false);
+      }
+    });
+  }
+  
+  function ensureVersion(page){
+    if (!page.currentVersionId || !page.state.versions.find(v => v.id === page.currentVersionId)){
+      const idx = page.state.versions.length;
+      const v = {
+        id: newId(),
+        name: VERSION_NAMES[idx] || `版本 ${idx+1}`,
+        color: VERSION_COLORS[idx % VERSION_COLORS.length],
+        sub: idx === 0 ? '默认版本' : '',
+        script: null, storyboard: null
+      };
+      page.state.versions.push(v);
+      page.currentVersionId = v.id;
+      return { v, created: true };
+    }
+    return { v: page.state.versions.find(v => v.id === page.currentVersionId), created: false };
+  }
+  
+  function getCurrentVersion(page){
+    return page.state.versions.find(v => v.id === page.currentVersionId);
+  }
+  
+  function addLog(page, role, text){ page.log.push({r: role, t: text}); }
+  
+  function buildScriptLines(color){
+    if (color === 'coral') return ['1. 清晨窗边，Lumi 翻相册', '2. 副歌：记忆涌来', '3. 尾奏：合影定格'];
+    if (color === 'purple') return ['1. 旧客厅，Lumi 与外婆', '2. 副歌：胡同老照片', '3. 尾奏：相册合上'];
+    if (color === 'teal') return ['1. 摩天楼夜景', '2. 副歌：长镜头穿行', '3. 尾奏：全城灯光熄灭'];
+    return ['1. 像素世界苏醒', '2. 副歌：8-bit 合成器', '3. 尾奏：GAME OVER'];
+  }
+  
+  const ACTIONS = {
+    add_character_ai: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const idx = page.state.shared.characters.length;
+        page.state.shared.characters.push({
+          id: newId(),
+          name: CHARACTER_NAMES[idx % CHARACTER_NAMES.length],
+          tag: CHARACTER_TAGS[idx % CHARACTER_TAGS.length],
+          source: 'ai', n: true
+        });
+        addLog(page, 't', `生成了一个候选角色：${CHARACTER_NAMES[idx % CHARACTER_NAMES.length]}。`);
+      }
+    },
+    add_character_user: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const cnt = page.state.shared.characters.filter(c => c.source === 'user').length + 1;
+        page.state.shared.characters.push({
+          id: newId(), name: `Ref${cnt}`, tag: '用户上传', source: 'user', n: true
+        });
+        addLog(page, 'u', '（上传了一张角色参考图）');
+      }
+    },
+    add_scene_ai: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const idx = page.state.shared.scenes.length;
+        page.state.shared.scenes.push({
+          id: newId(),
+          name: SCENE_NAMES[idx % SCENE_NAMES.length],
+          grad: SCENE_GRADS[idx % SCENE_GRADS.length],
+          source: 'ai', n: true
+        });
+        addLog(page, 't', `生成了一张场景：${SCENE_NAMES[idx % SCENE_NAMES.length]}。`);
+      }
+    },
+    add_scene_user: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const idx = page.state.shared.scenes.length;
+        const cnt = page.state.shared.scenes.filter(s => s.source === 'user').length + 1;
+        page.state.shared.scenes.push({
+          id: newId(), name: `Ref 场景 ${cnt}`,
+          grad: SCENE_GRADS[idx % SCENE_GRADS.length],
+          source: 'user', n: true
+        });
+        addLog(page, 'u', '（上传了一张场景照片）');
+      }
+    },
+    upload_ref_video: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const idx = page.state.shared.refVideos.length;
+        const purpose = REF_VIDEO_PURPOSES[idx % REF_VIDEO_PURPOSES.length];
+        page.state.shared.refVideos.push({
+          id: newId(), label: `Ref ${idx + 1}`,
+          tag: purpose.tag, style: purpose.style, n: true
+        });
+        addLog(page, 'u', `（上传了一段参考视频 · ${purpose.tag}）`);
+      }
+    },
+    write_script: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const { v, created } = ensureVersion(page);
+        v.script = { lines: buildScriptLines(v.color), source: 'ai', n: true, cascade: false, modified: false };
+        addLog(page, 's', created ? `起了「${v.name}」的剧本，三段式情绪弧。` : `改写了「${v.name}」的剧本。`);
+      }
+    },
+    upload_script: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const { v } = ensureVersion(page);
+        const userLines = [
+          '1. 外景：黄昏，一个人走过旧街道',
+          '2. 内景：推开门，屋内布满照片',
+          '3. 回忆交叠，最后停在一张',
+          '4. 黑幕，留一句字幕'
+        ];
+        v.script = { lines: userLines, source: 'user', n: true, cascade: false, modified: false };
+        addLog(page, 'u', `（上传了一份剧本到「${v.name}」）`);
+      }
+    },
+    generate_storyboard: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const { v } = ensureVersion(page);
+        let cascadeNote = null;
+        if (!v.script) {
+          v.script = { lines: buildScriptLines(v.color), source: 'ai', n: true, cascade: true, modified: false };
+          cascadeNote = '没有剧本，先自动起了一版草稿';
+        }
+        const refHint = page.state.shared.refVideos.length ? '，参考了你上传的视频节奏' : '';
+        const shotCount = v.script.source === 'user' ? v.script.lines.length : 5;
+        v.storyboard = {
+          n: true, cascade: false,
+          shots: Array.from({length: shotCount}, (_, i) => ({ label: `Shot ${i+1}`, status: 'sketch' }))
+        };
+        if (cascadeNote) addLog(page, 't', cascadeNote + '。');
+        addLog(page, 's', `「${v.name}」故事版出炉${refHint}，${shotCount} 个镜头。`);
+      }
+    },
+    generate_shot_video: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        const { v } = ensureVersion(page);
+        const cascades = [];
+        if (!v.script) {
+          v.script = { lines: buildScriptLines(v.color), source: 'ai', n: true, cascade: true, modified: false };
+          cascades.push('剧本');
+        }
+        if (!v.storyboard) {
+          v.storyboard = {
+            n: true, cascade: true,
+            shots: Array.from({length: 5}, (_, i) => ({ label: `Shot ${i+1}`, status: 'sketch' }))
+          };
+          cascades.push('故事版');
+        }
+        const next = v.storyboard.shots.find(s => s.status === 'sketch' && !s.stale);
+        if (cascades.length) addLog(page, 't', `没有 ${cascades.join('、')}，先自动补齐。`);
+        if (next){ next.status = 'video'; next.n = true; addLog(page, 't', `${next.label} 视频已生成。`); }
+        else addLog(page, 't', '所有 shot 都已生成视频。');
+      }
+    },
+    generate_direct_video: {
+      run: (page) => {
+        clearNewFlags(page.state);
+        page.state.directVideos.push({
+          id: newId(), label: `成片 ${page.state.directVideos.length + 1}`,
+          dur: '0:30', n: true
+        });
+        const refNote = page.state.shared.refVideos.length ? '，基于参考视频风格' : '';
+        addLog(page, 't', `直接出了一段独立成片${refNote}。`);
+      }
+    },
+    fork_version: {
+      check: (page) => page.state.versions.length > 0 && page.state.versions.length < VERSION_NAMES.length,
+      run: (page) => {
+        clearNewFlags(page.state);
+        const base = getCurrentVersion(page) || page.state.versions[0];
+        const idx = page.state.versions.length;
+        const newV = {
+          id: newId(),
+          name: VERSION_NAMES[idx],
+          color: VERSION_COLORS[idx % VERSION_COLORS.length],
+          sub: `分叉自「${base.name}」`,
+          script: base.script ? { lines: buildScriptLines(VERSION_COLORS[idx]), source: 'ai', n: true, cascade: false, modified: false } : null,
+          storyboard: null
+        };
+        page.state.versions.push(newV);
+        page.currentVersionId = newV.id;
+        addLog(page, 'u', '再来一个风格完全不同的版本。');
+        addLog(page, 't', `新开「${newV.name}」岛，剧本朝新方向起了一版。`);
+      }
+    },
+    modify_script: {
+      check: (page) => {
+        const v = getCurrentVersion(page);
+        return v && v.script && !v.script.modified;
+      },
+      run: (page) => {
+        clearNewFlags(page.state);
+        const v = getCurrentVersion(page);
+        if (!v || !v.script) return;
+        v.script.modified = true;
+        v.script.lines[1] = v.script.lines[1].replace(/（[^）]+）$/, '') + '（更克制）';
+        v.script.updated = [1];
+        if (v.storyboard) {
+          v.storyboard.shots[1].stale = true;
+          if (v.storyboard.shots[2]) v.storyboard.shots[2].stale = true;
+        }
+        addLog(page, 'u', '把第二段改一下，情绪更收。');
+        addLog(page, 't', '已改。受影响的 shot 已打「过期」标。');
+      }
+    }
+  };
+  
+  const PRESETS = {
+    A: ['add_character_ai', 'add_character_ai', 'add_scene_ai', 'add_scene_ai', 'write_script', 'generate_storyboard', 'generate_shot_video', 'generate_shot_video', 'generate_shot_video'],
+    B: ['add_character_user', 'add_character_user', 'write_script', 'add_scene_ai', 'generate_storyboard'],
+    C: ['write_script', 'add_character_ai', 'add_character_ai', 'add_scene_ai', 'generate_storyboard'],
+    D: ['generate_direct_video'],
+    E: ['add_character_ai', 'add_character_ai', 'write_script', 'generate_storyboard', 'generate_shot_video', 'fork_version', 'generate_storyboard', 'modify_script'],
+    F: ['upload_ref_video', 'upload_script', 'add_character_user', 'add_scene_user', 'generate_storyboard', 'generate_shot_video', 'generate_shot_video']
+  };
+  
+  function runAction(key){
+    const page = getActivePage();
+    if (!page || page.type !== 'mv') return;
+    const act = ACTIONS[key];
+    if (!act) return;
+    if (act.check && !act.check(page)) return;
+    act.run(page);
+    render();
+  }
+  
+  async function runPreset(key){
+    if (busy) return;
+    const page = getActivePage();
+    if (!page || page.type !== 'mv') return;
+    busy = true;
+    // Reset current page state
+    page.state = freshMvState();
+    page.log = [];
+    page.currentVersionId = null;
+    page.pan = {x: 0, y: 0, scale: 1};
+    render();
+    await new Promise(r => setTimeout(r, 150));
+    const seq = PRESETS[key];
+    for (let i = 0; i < seq.length; i++){
+      runAction(seq[i]);
+      await new Promise(r => setTimeout(r, 650));
+    }
+    busy = false;
+    render();
+  }
+  
+  // ——— Import logic ———
+  function openImportDropdown(anchorEl){
+    closeImportDropdown();
+    const currentPage = getActivePage();
+    const others = pages.filter(p => p.type === 'mv' && p.id !== activePageId);
+    
+    const dd = h('div', {class: 'import-dropdown', id: 'import-dropdown'});
+    let total = 0;
+    others.forEach(p => {
+      const items = [];
+      p.state.shared.characters.forEach(c => {
+        items.push({kind: '角色', name: c.name, tag: c.tag, obj: c, type: 'character', src: p});
+      });
+      p.state.shared.scenes.forEach(s => {
+        items.push({kind: '场景', name: s.name, tag: '', obj: s, type: 'scene', src: p});
+      });
+      p.state.shared.refVideos.forEach(r => {
+        items.push({kind: '参考视频', name: r.label, tag: r.tag, obj: r, type: 'ref', src: p});
+      });
+      if (!items.length) return;
+      dd.appendChild(h('div', {class: 'import-group'}, `从 MV · ${p.name}`));
+      items.forEach(it => {
+        const el = h('div', {
+          class: 'import-item',
+          onclick: () => { importItem(it); closeImportDropdown(); }
+        },
+          h('div', {class: 'ic'}, it.name[0]),
+          h('div', {class: 'name'}, it.name),
+          h('div', {class: 'kind'}, it.kind)
+        );
+        dd.appendChild(el);
+        total++;
+      });
+    });
+    
+    if (total === 0){
+      dd.appendChild(h('div', {class: 'import-empty'}, '其他 page 里还没有可导入的素材'));
+    }
+    
+    document.body.appendChild(dd);
+    const rect = anchorEl.getBoundingClientRect();
+    dd.style.left = rect.left + 'px';
+    dd.style.top = (rect.bottom + 4) + 'px';
+    importDropdownOpen = true;
+    
+    setTimeout(() => {
+      document.addEventListener('click', handleImportOutside, { capture: true });
+    }, 0);
+  }
+  
+  function handleImportOutside(e){
+    const dd = $('import-dropdown');
+    if (!dd) return;
+    if (!dd.contains(e.target) && !e.target.closest('[data-act="import"]')){
+      closeImportDropdown();
+    }
+  }
+  
+  function closeImportDropdown(){
+    const dd = $('import-dropdown');
+    if (dd) dd.remove();
+    importDropdownOpen = false;
+    document.removeEventListener('click', handleImportOutside, { capture: true });
+  }
+  
+  function importItem(it){
+    const page = getActivePage();
+    if (!page || page.type !== 'mv') return;
+    clearNewFlags(page.state);
+    const importedFrom = it.src.name;
+    if (it.type === 'character'){
+      page.state.shared.characters.push({
+        id: newId(),
+        name: it.obj.name,
+        tag: it.obj.tag,
+        source: 'imported',
+        importedFrom,
+        n: true
+      });
+    } else if (it.type === 'scene'){
+      page.state.shared.scenes.push({
+        id: newId(),
+        name: it.obj.name,
+        grad: it.obj.grad,
+        source: 'imported',
+        importedFrom,
+        n: true
+      });
+    } else if (it.type === 'ref'){
+      page.state.shared.refVideos.push({
+        id: newId(),
+        label: it.obj.label,
+        tag: it.obj.tag,
+        style: it.obj.style,
+        source: 'imported',
+        importedFrom,
+        n: true
+      });
+    }
+    addLog(page, 'u', `从「${importedFrom}」导入了：${it.name}（${it.kind}）`);
+    addLog(page, 't', `已拉过来，可以在这个 page 里用。`);
+    render();
+  }
+  
+  // ——— Render ———
+  function render(){
+    renderTabs();
+    const page = getActivePage();
+    if (!page) return;
+    renderActionBar(page);
+    renderMain(page);
+  }
+  
+  function renderTabs(){
+    const bar = $('tab-bar');
+    [...bar.querySelectorAll('.tab, .tab-add, .tab-bar-right')].forEach(e => e.remove());
+    
+    pages.forEach(p => {
+      const isActive = p.id === activePageId;
+      const isMusic = p.type === 'music';
+      const tab = h('div', {
+        class: `tab ${isActive ? 'active' : ''}`,
+        onclick: () => { if (!busy) { activePageId = p.id; render(); } }
+      });
+      
+      const icon = h('span', {class: `tab-icon ${isMusic ? 'music' : 'mv'}`});
+      if (isMusic) {
+        icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 10V3l5-1v7" stroke="currentColor" stroke-width="1.2"/><circle cx="3" cy="10" r="1.5" fill="currentColor"/><circle cx="8" cy="9" r="1.5" fill="currentColor"/></svg>`;
+      } else {
+        icon.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="3" width="9" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 5.5 L7.5 6 L5 6.5 Z" fill="currentColor"/></svg>`;
+      }
+      
+      const prefix = isMusic ? '音乐 · ' : 'MV · ';
+      const name = h('span', {class: 'tab-name'}, prefix + p.name);
+      tab.appendChild(icon);
+      tab.appendChild(name);
+      
+      if (pages.length > 1) {
+        const close = h('button', {
+          class: 'tab-close',
+          onclick: (e) => { e.stopPropagation(); closePage(p.id); }
+        }, '×');
+        tab.appendChild(close);
+      }
+      
+      bar.appendChild(tab);
+    });
+    
+    const addBtn = h('button', {
+      class: 'tab-add',
+      onclick: () => { if (!busy) createNewPage(); },
+      title: '新建 MV page'
+    }, '+');
+    bar.appendChild(addBtn);
+    
+    const right = h('div', {class: 'tab-bar-right'}, `${pages.length} page`);
+    bar.appendChild(right);
+  }
+  
+  function closePage(id){
+    if (pages.length === 1) return;
+    const idx = pages.findIndex(p => p.id === id);
+    pages.splice(idx, 1);
+    if (activePageId === id) {
+      activePageId = pages[Math.min(idx, pages.length - 1)].id;
+    }
+    render();
+  }
+  
+  function createNewPage(){
+    const n = pages.filter(p => p.type === 'mv').length + 1;
+    const page = freshPage('mv', `新 MV ${n}`, {
+      title: `待选择的歌曲`, duration: '—', fromPageId: null
+    });
+    pages.push(page);
+    activePageId = page.id;
+    render();
+  }
+  
+  function renderActionBar(page){
+    const bar = $('action-bar');
+    bar.innerHTML = '';
+    bar.className = 'action-bar' + (page.type === 'music' ? ' music-mode' : '');
+    
+    if (page.type === 'music'){
+      // Music page: minimal action bar, just context
+      bar.appendChild(h('div', {class: 'action-row'},
+        h('span', {class: 'group-title', style: 'color: var(--text-dark-secondary)'}, '音乐 PAGE'),
+        h('span', {style: 'font-size: 11px; color: var(--text-dark-secondary); opacity: 0.8;'},
+          '这是一个音乐创作页 · 为这首歌做 MV 的话，打开右边或下面的 MV 按钮')
+      ));
+      return;
+    }
+    
+    // MV page: full action bar
+    const row1 = h('div', {class: 'action-row'},
+      h('span', {class: 'group-title'}, '预设场景'),
+      h('button', {class: 'btn primary', onclick: () => runPreset('A')}, 'A · 直接生成'),
+      h('button', {class: 'btn', onclick: () => runPreset('B')}, 'B · 角色先行'),
+      h('button', {class: 'btn', onclick: () => runPreset('C')}, 'C · 剧本先行'),
+      h('button', {class: 'btn', onclick: () => runPreset('D')}, 'D · 一段视频'),
+      h('button', {class: 'btn', onclick: () => runPreset('E')}, 'E · 多版本分叉'),
+      h('button', {class: 'btn', onclick: () => runPreset('F')}, 'F · 自带素材'),
+      h('div', {class: 'sep'}),
+      h('button', {class: 'btn subtle', onclick: () => resetCurrentPage()}, '清空本 page')
+    );
+    if (busy){
+      const chip = h('span', {class: 'playing-chip'},
+        h('span', {class: 'dot'}),
+        h('span', {}, '正在回放')
+      );
+      row1.appendChild(chip);
+    }
+    bar.appendChild(row1);
+    
+    const row2 = h('div', {class: 'action-row'},
+      h('span', {class: 'group-title'}, '原子能力'),
+      h('span', {class: 'sub-label'}, '素材'),
+      h('button', {class: 'btn', onclick: () => runAction('add_character_ai')}, '+角色 AI'),
+      h('button', {class: 'btn upload', onclick: () => runAction('add_character_user')}, '+角色 上传'),
+      h('button', {class: 'btn', onclick: () => runAction('add_scene_ai')}, '+场景 AI'),
+      h('button', {class: 'btn upload', onclick: () => runAction('add_scene_user')}, '+场景 上传'),
+      h('button', {class: 'btn upload', onclick: () => runAction('upload_ref_video')}, '+参考视频'),
+      h('button', {
+        class: 'btn import',
+        'data-act': 'import',
+        onclick: (e) => { e.stopPropagation(); openImportDropdown(e.currentTarget); }
+      }, '⟵ 从其他 page 导入'),
+      h('div', {class: 'sep'}),
+      h('span', {class: 'sub-label'}, '创作'),
+      h('button', {class: 'btn', onclick: () => runAction('write_script')}, '写剧本 AI'),
+      h('button', {class: 'btn upload', onclick: () => runAction('upload_script')}, '上传剧本'),
+      h('button', {class: 'btn', onclick: () => runAction('generate_storyboard')}, '故事版'),
+      h('button', {class: 'btn', onclick: () => runAction('generate_shot_video')}, 'shot 视频'),
+      h('button', {class: 'btn', onclick: () => runAction('generate_direct_video')}, '独立视频'),
+      h('div', {class: 'sep'}),
+      h('span', {class: 'sub-label'}, '版本'),
+      h('button', {class: 'btn', onclick: () => runAction('fork_version')}, '分叉'),
+      h('button', {class: 'btn', onclick: () => runAction('modify_script')}, '改剧本')
+    );
+    bar.appendChild(row2);
+    
+    // Disable buttons as needed
+    setTimeout(() => {
+      bar.querySelectorAll('[onclick]').forEach(btn => {
+        // best-effort: iterate actions and check
+      });
+    }, 0);
+  }
+  
+  function resetCurrentPage(){
+    if (busy) return;
+    const page = getActivePage();
+    if (!page || page.type !== 'mv') return;
+    page.state = freshMvState();
+    page.log = [];
+    page.currentVersionId = null;
+    page.pan = {x: 0, y: 0, scale: 1};
+    render();
+  }
+  
+  function renderMain(page){
+    const main = $('main');
+    main.innerHTML = '';
+    main.className = 'main' + (page.type === 'music' ? ' music-mode' : '');
+    
+    if (page.type === 'music'){
+      main.appendChild(renderMusicPage(page));
+    } else {
+      main.appendChild(renderLogPanel(page));
+      main.appendChild(renderMvPageArea(page));
+    }
+  }
+  
+  // ——— Music Page ———
+  function renderMusicPage(page){
+    const bars = Array.from({length: 40}, (_, i) => {
+      const hght = 6 + Math.abs(Math.sin(i * 0.55 + 0.8)) * 36;
+      return h('div', {class: 'bar', style: `height: ${hght}px; opacity: ${0.4 + (i%4)*0.15}`});
+    });
+    
+    const linkedMvs = pages.filter(p => p.type === 'mv' && p.song && p.song.fromPageId === page.id);
+    const linkedSection = linkedMvs.length
+      ? h('div', {class: 'music-linked-mvs'},
+          h('div', {class: 'label'}, `关联的 MV Pages · ${linkedMvs.length}`),
+          h('div', {class: 'linked-mv-row'},
+            ...linkedMvs.map(mp => h('div', {
+              class: 'linked-mv-chip',
+              onclick: () => { activePageId = mp.id; render(); }
+            },
+              h('span', {style: 'color: var(--accent)', html: '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="3" width="9" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 5.5 L7.5 6 L5 6.5 Z" fill="currentColor"/></svg>'}),
+              h('span', {}, `MV · ${mp.name}`),
+              h('span', {style: 'opacity: 0.5; font-size: 10px;'}, '→')
+            ))
+          )
+        )
+      : null;
+    
+    return h('div', {class: 'music-page'},
+      h('div', {class: 'music-hero'},
+        h('div', {
+          class: 'music-big-play',
+          onclick: () => {},
+          html: '<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="13,10 13,26 27,18" fill="#fff"/></svg>'
+        }),
+        h('div', {class: 'music-title-big'}, page.name),
+        h('div', {class: 'music-subtitle'}, '音乐创作页'),
+        h('div', {class: 'music-wave-big'}, bars),
+        h('button', {
+          class: 'music-cta',
+          onclick: () => createMvForSong(page)
+        }, '↗  为这首歌做 MV')
+      ),
+      h('div', {class: 'music-sections'},
+        h('div', {class: 'music-section'},
+          h('div', {class: 'sec-label'}, '歌词'),
+          h('div', {class: 'sec-content sec-ph'}, '（demo 中不做完整实现 · 真实产品里这里是歌词编辑器）')
+        ),
+        h('div', {class: 'music-section'},
+          h('div', {class: 'sec-label'}, '参数 / 风格'),
+          h('div', {class: 'sec-content sec-ph'}, '（BPM、调性、模型选择、参考曲...）')
+        ),
+        h('div', {class: 'music-section'},
+          h('div', {class: 'sec-label'}, '生成历史'),
+          h('div', {class: 'sec-content sec-ph'}, '（这首歌的历次 take）')
+        ),
+        h('div', {class: 'music-section'},
+          h('div', {class: 'sec-label'}, '母带 / 导出'),
+          h('div', {class: 'sec-content sec-ph'}, '（mastering、格式、下载）')
+        )
+      ),
+      linkedSection
+    );
+  }
+  
+  function createMvForSong(musicPage){
+    // If MV already exists for this song, switch
+    const existing = pages.find(p => p.type === 'mv' && p.song && p.song.fromPageId === musicPage.id);
+    if (existing){
+      activePageId = existing.id;
+      render();
+      return;
+    }
+    const mv = freshPage('mv', musicPage.name, {
+      title: musicPage.name,
+      duration: '0:30',
+      fromPageId: musicPage.id
+    });
+    pages.push(mv);
+    activePageId = mv.id;
+    render();
+  }
+  
+  // ——— Log panel ———
+  function renderLogPanel(page){
+    const panel = h('aside', {class: 'log-panel'});
+    const head = h('div', {class: 'log-head'},
+      h('span', {class: 'title-s'}, '操作流水'),
+      h('span', {class: 'count'}, `${page.log.length} 条`)
+    );
+    const list = h('div', {class: 'log-list'});
+    if (!page.log.length){
+      list.appendChild(h('div', {class: 'log-empty', html: '还没有任何动作<br><span style="opacity:0.6">点个预设试试</span>'}));
+    } else {
+      page.log.forEach(m => list.appendChild(renderMsg(m)));
+      requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
+    }
+    panel.appendChild(head);
+    panel.appendChild(list);
+    return panel;
+  }
+  
+  function renderMsg(m){
+    if (m.r === 'u'){
+      return h('div', {class: 'msg user'},
+        h('div', {class: 'msg-body'},
+          h('div', {class: 'bubble'}, m.t)
+        )
+      );
+    }
+    const isSage = m.r === 's';
+    return h('div', {class: 'msg'},
+      h('div', {class: `avatar ${isSage?'sage':'tunee'}`}, isSage ? 'S' : 'T'),
+      h('div', {class: 'msg-body'},
+        h('div', {class: 'msg-name'}, isSage ? 'Sage' : 'Tunee'),
+        h('div', {class: 'msg-text'}, m.t)
+      )
+    );
+  }
+  
+  // ——— MV Page area ———
+  function renderMvPageArea(page){
+    const area = h('main', {class: 'page-area'});
+    
+    // Song anchor
+    area.appendChild(renderSongAnchor(page));
+    
+    // Canvas wrap
+    const wrap = h('div', {class: 'canvas-wrap'});
+    
+    // Canvas head
+    const head = h('div', {class: 'canvas-head'},
+      h('div', {class: 'left'},
+        h('span', {class: 'h-title'}, '画布'),
+        h('span', {class: 'h-sub', id: 'canvas-count'}, computeCanvasCount(page))
+      ),
+      renderVersionSelector(page)
+    );
+    wrap.appendChild(head);
+    
+    // Canvas
+    const canvas = h('div', {class: 'canvas', id: 'canvas'});
+    const content = h('div', {class: 'canvas-content', id: 'canvas-content'});
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'canvas-lines');
+    svg.id = 'canvas-lines';
+    content.appendChild(svg);
+    canvas.appendChild(content);
+    
+    // Controls
+    const controls = h('div', {class: 'canvas-controls'},
+      h('button', {class: 'ctrl', onclick: () => zoomBy(1/1.2)}, '−'),
+      h('span', {class: 'ctrl zoom-level', id: 'zoom-level'}, '100%'),
+      h('button', {class: 'ctrl', onclick: () => zoomBy(1.2)}, '+'),
+      h('button', {class: 'ctrl', onclick: () => fitToContent(), title: '贴合 (F)'}, '⊙')
+    );
+    canvas.appendChild(controls);
+    
+    wrap.appendChild(canvas);
+    area.appendChild(wrap);
+    
+    // Populate canvas after mount
+    requestAnimationFrame(() => populateCanvas(page));
+    
+    return area;
+  }
+  
+  function renderSongAnchor(page){
+    const song = page.song;
+    const cover = h('div', {class: 'anchor-cover'}, song.title[0]);
+    
+    // Waveform
+    const bars = Array.from({length: 30}, (_, i) => {
+      const hght = 4 + Math.abs(Math.sin(i * 0.6 + 0.5)) * 24;
+      return `<rect x="${i*5}" y="${(32-hght)/2}" width="3" height="${hght}" fill="#C44A2E" opacity="${0.5 + (i%3)*0.1}"/>`;
+    }).join('');
+    const wave = h('div', {class: 'anchor-wave', html: `<svg width="100%" height="32" viewBox="0 0 150 32">${bars}</svg>`});
+    
+    // Emotion curve
+    const curve = h('div', {
+      class: 'anchor-curve',
+      html: `
+        <svg width="100%" height="36" viewBox="0 0 200 36" preserveAspectRatio="none">
+          <path d="M 0 28 Q 35 28, 55 22 T 105 6 T 155 16 T 200 22" stroke="#C44A2E" stroke-width="1.5" fill="none"/>
+          <path d="M 0 28 Q 35 28, 55 22 T 105 6 T 155 16 T 200 22 L 200 36 L 0 36 Z" fill="#C44A2E" opacity="0.08"/>
+          <circle cx="0" cy="28" r="2" fill="#C44A2E"/>
+          <circle cx="55" cy="22" r="2" fill="#C44A2E"/>
+          <circle cx="105" cy="6" r="2.2" fill="#C44A2E"/>
+          <circle cx="155" cy="16" r="2" fill="#C44A2E"/>
+          <circle cx="200" cy="22" r="2" fill="#C44A2E"/>
+        </svg>
+        <div class="anchor-curve-labels">
+          <span>Calm</span><span>Anticipation</span><span>Climax</span><span>Release</span><span>Afterglow</span>
+        </div>
+      `
+    });
+    
+    const fromPage = song.fromPageId ? pages.find(p => p.id === song.fromPageId) : null;
+    const subEls = [h('span', {}, song.duration)];
+    if (fromPage){
+      subEls.push(h('span', {}, '·'));
+      subEls.push(h('span', {
+        class: 'link',
+        onclick: () => { activePageId = fromPage.id; render(); }
+      }, `来自音乐页：${fromPage.name} →`));
+    } else {
+      subEls.push(h('span', {}, '·'));
+      subEls.push(h('span', {style: 'color: var(--text-tertiary)'}, '未关联音乐页'));
+    }
+    const info = h('div', {class: 'anchor-info'},
+      h('div', {class: 'anchor-title'}, song.title),
+      h('div', {class: 'anchor-sub'}, ...subEls)
+    );
+    
+    const locked = h('div', {class: 'anchor-locked', title: '本 page 锁定这首歌，换歌需要开新 page'},
+      h('span', {html: '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="2" y="4.5" width="6" height="4" rx="0.5" stroke="currentColor" stroke-width="1"/><path d="M3.5 4.5 V3 a1.5 1.5 0 0 1 3 0 V4.5" stroke="currentColor" stroke-width="1"/></svg>'}),
+      h('span', {}, '已锁定')
+    );
+    
+    return h('div', {class: 'song-anchor'},
+      cover,
+      info,
+      wave,
+      curve,
+      locked
+    );
+  }
+  
+  function computeCanvasCount(page){
+    const s = page.state;
+    const total = s.shared.characters.length + s.shared.scenes.length + s.shared.refVideos.length
+      + s.versions.reduce((n, v) => n + (v.script?1:0) + (v.storyboard?1:0), 0)
+      + s.directVideos.length;
+    if (!total) return '空';
+    const parts = [];
+    if (s.versions.length) parts.push(`${s.versions.length} 版本岛`);
+    parts.push(`${total} 卡片`);
+    return parts.join(' · ');
+  }
+  
+  function renderVersionSelector(page){
+    const el = h('div', {class: 'version-selector'});
+    if (!page.state.versions.length) return el;
+    el.appendChild(h('span', {class: 'label'}, '当前版本:'));
+    page.state.versions.forEach(v => {
+      const chip = h('span', {
+        class: `version-chip ${v.color} ${v.id === page.currentVersionId ? 'active' : ''}`,
+        onclick: () => { page.currentVersionId = v.id; render(); }
+      }, v.name);
+      el.appendChild(chip);
+    });
+    return el;
+  }
+  
+  // ——— Populate infinite canvas ———
+  function populateCanvas(page){
+    const content = $('canvas-content');
+    const canvas = $('canvas');
+    if (!content || !canvas) return;
+    
+    // Clear old islands (keep svg)
+    [...content.children].forEach(c => {
+      if (c.tagName.toLowerCase() !== 'svg') c.remove();
+    });
+    
+    const s = page.state;
+    const hasShared = s.shared.characters.length || s.shared.scenes.length || s.shared.refVideos.length;
+    const hasContent = hasShared || s.versions.length || s.directVideos.length;
+    
+    if (!hasContent){
+      const empty = h('div', {class: 'canvas-empty', html: `
+        <div class="hl">本 MV page 的画布</div>
+        <div>这首歌锁定了 · 可以上角色、场景、写剧本、或者从其他 page 导入素材</div>
+      `});
+      content.appendChild(empty);
+      updateContentSize(900, 500);
+      drawLines(null);
+      applyTransform(page);
+      return;
+    }
+    
+    let sharedBounds = null, dvBounds = null;
+    const versionBounds = [];
+    
+    if (hasShared){
+      const sh = renderShared(s.shared);
+      sh.style.left = PADDING + 'px';
+      sh.style.top = PADDING + 'px';
+      sh.style.width = SHARED_W + 'px';
+      content.appendChild(sh);
+      sharedBounds = {x: PADDING, y: PADDING, w: SHARED_W, h: sh.offsetHeight};
+    }
+    
+    if (s.directVideos.length){
+      const dv = renderDirectVideos(s.directVideos);
+      const dvX = PADDING + (hasShared ? SHARED_W + GAP : 0);
+      dv.style.left = dvX + 'px';
+      dv.style.top = PADDING + 'px';
+      dv.style.width = DV_W + 'px';
+      content.appendChild(dv);
+      dvBounds = {x: dvX, y: PADDING, w: DV_W, h: dv.offsetHeight};
+    }
+    
+    const topAbove = Math.max(
+      sharedBounds ? sharedBounds.y + sharedBounds.h : 0,
+      dvBounds ? dvBounds.y + dvBounds.h : 0
+    );
+    const versionsY = topAbove > 0 ? topAbove + GAP + 20 : PADDING;
+    
+    s.versions.forEach((v, i) => {
+      const vIsland = renderVersion(v);
+      const vx = PADDING + i * (VERSION_W + GAP);
+      vIsland.style.left = vx + 'px';
+      vIsland.style.top = versionsY + 'px';
+      vIsland.style.width = VERSION_W + 'px';
+      content.appendChild(vIsland);
+      versionBounds.push({x: vx, y: versionsY, w: VERSION_W, h: vIsland.offsetHeight});
+    });
+    
+    const allBounds = [sharedBounds, dvBounds, ...versionBounds].filter(Boolean);
+    const maxR = Math.max(...allBounds.map(b => b.x + b.w));
+    const maxB = Math.max(...allBounds.map(b => b.y + b.h));
+    updateContentSize(maxR + PADDING, maxB + PADDING);
+    drawLines({sharedBounds, versionBounds}, page);
+    
+    applyTransform(page);
+    wireCanvasInteractions(page);
+    
+    // Focus newest
+    focusOnNew(page);
+  }
+  
+  function updateContentSize(w, hg){
+    const content = $('canvas-content');
+    content.style.width = Math.max(w, 900) + 'px';
+    content.style.height = Math.max(hg, 500) + 'px';
+    const svg = $('canvas-lines');
+    if (svg){
+      svg.setAttribute('width', Math.max(w, 900));
+      svg.setAttribute('height', Math.max(hg, 500));
+    }
+  }
+  
+  function drawLines(bounds, page){
+    const svg = $('canvas-lines');
+    if (!svg) return;
+    svg.innerHTML = '';
+    if (!bounds) return;
+    const { sharedBounds, versionBounds } = bounds;
+    if (!sharedBounds || !versionBounds.length) return;
+    const sx = sharedBounds.x + sharedBounds.w / 2;
+    const sy = sharedBounds.y + sharedBounds.h;
+    
+    versionBounds.forEach((vb, i) => {
+      const vc = page.state.versions[i].color;
+      const vx = vb.x + vb.w / 2;
+      const vy = vb.y;
+      const dy = vy - sy;
+      const c1y = sy + dy * 0.4;
+      const c2y = vy - dy * 0.4;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${sx} ${sy} C ${sx} ${c1y}, ${vx} ${c2y}, ${vx} ${vy}`);
+      path.setAttribute('stroke', COL_SOFT[vc]);
+      path.setAttribute('stroke-width', '1.2');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '0.55');
+      svg.appendChild(path);
+      const dot1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot1.setAttribute('cx', sx); dot1.setAttribute('cy', sy);
+      dot1.setAttribute('r', '2.5'); dot1.setAttribute('fill', COL_SOFT[vc]);
+      svg.appendChild(dot1);
+      const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot2.setAttribute('cx', vx); dot2.setAttribute('cy', vy);
+      dot2.setAttribute('r', '2.5'); dot2.setAttribute('fill', COL_SOFT[vc]);
+      svg.appendChild(dot2);
+    });
+  }
+  
+  function focusOnNew(page){
+    const canvas = $('canvas');
+    if (!canvas) return;
+    const newEl = canvas.querySelector('.is-new, .shot.is-new');
+    if (!newEl) return;
+    const cRect = canvas.getBoundingClientRect();
+    const eRect = newEl.getBoundingClientRect();
+    const fullyVisible = eRect.left >= cRect.left + 20 && eRect.right <= cRect.right - 20
+                      && eRect.top >= cRect.top + 20 && eRect.bottom <= cRect.bottom - 20;
+    if (fullyVisible) return;
+    const dx = (cRect.width / 2) - (eRect.left - cRect.left + eRect.width / 2);
+    const dy = (cRect.height / 2) - (eRect.top - cRect.top + eRect.height / 2);
+    page.pan.x += dx;
+    page.pan.y += dy;
+    applyTransform(page);
+  }
+  
+  function applyTransform(page){
+    const content = $('canvas-content');
+    const zoomEl = $('zoom-level');
+    if (!content) return;
+    content.style.transform = `translate(${page.pan.x}px, ${page.pan.y}px) scale(${page.pan.scale})`;
+    if (zoomEl) zoomEl.textContent = Math.round(page.pan.scale * 100) + '%';
+  }
+  
+  function zoomBy(factor){
+    const page = getActivePage();
+    if (!page || page.type !== 'mv') return;
+    const canvas = $('canvas');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const oldScale = page.pan.scale;
+    const newScale = Math.max(0.4, Math.min(2.5, oldScale * factor));
+    if (newScale === oldScale) return;
+    page.pan.scale = newScale;
+    page.pan.x = cx - (cx - page.pan.x) * (newScale / oldScale);
+    page.pan.y = cy - (cy - page.pan.y) * (newScale / oldScale);
+    applyTransform(page);
+  }
+  
+  function fitToContent(){
+    const page = getActivePage();
+    if (!page || page.type !== 'mv') return;
+    const canvas = $('canvas');
+    const content = $('canvas-content');
+    if (!canvas || !content) return;
+    const cRect = canvas.getBoundingClientRect();
+    const w = content.offsetWidth;
+    const hg = content.offsetHeight;
+    const sx = (cRect.width - 40) / w;
+    const sy = (cRect.height - 40) / hg;
+    const scale = Math.min(1, Math.min(sx, sy));
+    page.pan.scale = Math.max(0.4, scale);
+    page.pan.x = (cRect.width - w * page.pan.scale) / 2;
+    page.pan.y = (cRect.height - hg * page.pan.scale) / 2;
+    applyTransform(page);
+  }
+  
+  // Wire pan/zoom interactions (each time canvas rebuilds)
+  let canvasListenersWired = false;
+  function wireCanvasInteractions(page){
+    if (canvasListenersWired) return;
+    canvasListenersWired = true;
+    
+    let dragState = null;
+    document.addEventListener('mousedown', e => {
+      const canvas = $('canvas');
+      if (!canvas || !canvas.contains(e.target)) return;
+      if (e.target.closest('.card, .island-header, .canvas-controls, .import-dropdown')) return;
+      e.preventDefault();
+      canvas.classList.add('dragging');
+      const p = getActivePage();
+      if (!p || p.type !== 'mv') return;
+      dragState = {sx: e.clientX, sy: e.clientY, ox: p.pan.x, oy: p.pan.y, page: p};
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragState) return;
+      dragState.page.pan.x = dragState.ox + (e.clientX - dragState.sx);
+      dragState.page.pan.y = dragState.oy + (e.clientY - dragState.sy);
+      applyTransform(dragState.page);
+    });
+    document.addEventListener('mouseup', () => {
+      if (dragState){
+        dragState = null;
+        const canvas = $('canvas');
+        if (canvas) canvas.classList.remove('dragging');
+      }
+    });
+    document.addEventListener('wheel', e => {
+      const canvas = $('canvas');
+      if (!canvas || !canvas.contains(e.target)) return;
+      const p = getActivePage();
+      if (!p || p.type !== 'mv') return;
+      if (e.ctrlKey || e.metaKey){
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        const oldScale = p.pan.scale;
+        const factor = e.deltaY < 0 ? 1.08 : 0.92;
+        const newScale = Math.max(0.4, Math.min(2.5, oldScale * factor));
+        if (newScale === oldScale) return;
+        p.pan.scale = newScale;
+        p.pan.x = cx - (cx - p.pan.x) * (newScale / oldScale);
+        p.pan.y = cy - (cy - p.pan.y) * (newScale / oldScale);
+        applyTransform(p);
+      } else {
+        e.preventDefault();
+        p.pan.x -= e.deltaX;
+        p.pan.y -= e.deltaY;
+        applyTransform(p);
+      }
+    }, { passive: false });
+    document.addEventListener('keydown', e => {
+      if (e.target.matches('input, textarea')) return;
+      if (e.key === 'f' || e.key === 'F') { e.preventDefault(); fitToContent(); }
+    });
+  }
+  
+  // ——— Island renderers ———
+  function renderShared(shared){
+    const clusters = [];
+    if (shared.characters.length){
+      clusters.push({ firstId: shared.characters[0].id, label: `角色 · ${shared.characters.length}`, cards: () => {
+        const row = h('div', {class: 'card-row'});
+        shared.characters.forEach(c => row.appendChild(renderCharacter(c)));
+        return row;
+      }});
+    }
+    if (shared.scenes.length){
+      clusters.push({ firstId: shared.scenes[0].id, label: `场景 · ${shared.scenes.length}`, cards: () => {
+        const row = h('div', {class: 'card-row'});
+        shared.scenes.forEach(s => row.appendChild(renderScene(s)));
+        return row;
+      }});
+    }
+    if (shared.refVideos.length){
+      clusters.push({ firstId: shared.refVideos[0].id, label: `参考视频 · ${shared.refVideos.length}`, cards: () => {
+        const row = h('div', {class: 'card-row'});
+        shared.refVideos.forEach(r => row.appendChild(renderRefVideo(r)));
+        return row;
+      }});
+    }
+    clusters.sort((a, b) => String(a.firstId).localeCompare(String(b.firstId)));
+    
+    const body = h('div', {class: 'island-body'});
+    clusters.forEach(cl => {
+      body.appendChild(h('div', {class: 'cluster'},
+        h('div', {class: 'cluster-label'}, cl.label),
+        cl.cards()
+      ));
+    });
+    return h('div', {class: 'island neutral'},
+      h('div', {class: 'island-header'},
+        h('span', {class: 'island-dot'}),
+        h('span', {}, '共享素材'),
+        h('span', {class: 'island-sub'}, '跨版本复用')
+      ),
+      body
+    );
+  }
+  
+  function renderVersion(v){
+    const body = h('div', {class: 'island-body'});
+    if (v.script) body.appendChild(renderScript(v.script));
+    if (v.storyboard) body.appendChild(renderStoryboard(v.storyboard, v.color));
+    if (!v.script && !v.storyboard) {
+      body.appendChild(h('div', {class: 'empty-version-hint'}, '（空版本岛 · 写/上传剧本，或直接生成故事版）'));
+    }
+    return h('div', {class: `island ${v.color}`},
+      h('div', {class: 'island-header'},
+        h('span', {class: 'island-dot'}),
+        h('span', {}, v.name),
+        v.sub ? h('span', {class: 'island-sub'}, v.sub) : null
+      ),
+      body
+    );
+  }
+  
+  function renderDirectVideos(dvs){
+    const body = h('div', {class: 'island-body'});
+    const row = h('div', {class: 'card-row'});
+    dvs.forEach(dv => row.appendChild(renderDirectVideo(dv)));
+    body.appendChild(h('div', {class: 'cluster'},
+      h('div', {class: 'cluster-label'}, `独立成片 · ${dvs.length}`),
+      row
+    ));
+    return h('div', {class: 'island neutral'},
+      h('div', {class: 'island-header'},
+        h('span', {class: 'island-dot'}),
+        h('span', {}, '轻量成片'),
+        h('span', {class: 'island-sub'}, '不走剧本/故事版')
+      ),
+      body
+    );
+  }
+  
+  function renderCharacter(c){
+    const avatarClass = c.source === 'user' ? 'user-src' : (c.source === 'imported' ? 'import-src' : '');
+    const card = h('div', {class: `card character ${c.n?'is-new':''}`},
+      h('div', {class: `char-avatar ${avatarClass}`}, c.name[0]),
+      h('div', {class: 'char-name'}, c.name),
+      h('div', {class: 'char-tag'}, c.source === 'user' ? '上传' : (c.source === 'imported' ? '导入' : c.tag))
+    );
+    if (c.source === 'imported') {
+      card.appendChild(h('div', {class: 'imported-from'}, `← ${c.importedFrom}`));
+    }
+    return card;
+  }
+  
+  function renderScene(s){
+    const imgContent = s.source === 'user'
+      ? '<svg class="photo-icon" width="11" height="11" viewBox="0 0 12 12"><rect x="1.5" y="2.5" width="9" height="7" rx="1" stroke="currentColor" stroke-width="1" fill="none"/><circle cx="4" cy="5" r="0.8" fill="currentColor"/><path d="M1.5 8 L4 6 L7 8.5 L10.5 5.5" stroke="currentColor" stroke-width="1" fill="none"/></svg>'
+      : '';
+    const img = h('div', {class: 'scene-img', style: `background: linear-gradient(135deg, ${s.grad[0]}, ${s.grad[1]})`, html: imgContent});
+    const label = h('div', {class: 'card-label'}, h('span', {}, '场景'));
+    if (s.source === 'user') label.appendChild(h('span', {class: 'source-pill'}, '上传'));
+    if (s.source === 'imported') label.appendChild(h('span', {class: 'source-pill import'}, '导入'));
+    const card = h('div', {class: `card scene ${s.n?'is-new':''}`}, label, img, h('div', {class: 'scene-name'}, s.name));
+    if (s.source === 'imported') card.appendChild(h('div', {class: 'imported-from'}, `← ${s.importedFrom}`));
+    return card;
+  }
+  
+  function renderRefVideo(r){
+    const label = h('div', {class: 'card-label'}, h('span', {}, '参考视频'));
+    if (r.source === 'imported') label.appendChild(h('span', {class: 'source-pill import'}, '导入'));
+    else label.appendChild(h('span', {class: 'source-pill'}, '上传'));
+    const card = h('div', {class: `card ref-video ${r.n?'is-new':''}`},
+      label,
+      h('div', {class: `ref-thumb ${r.style}`},
+        h('div', {class: 'play', html:'<svg width="10" height="10" viewBox="0 0 12 12"><polygon points="4,2.5 4,9.5 10,6" fill="#1C1A17"/></svg>'})
+      ),
+      h('div', {class: 'ref-name'}, r.label),
+      h('div', {class: 'ref-tag'}, r.tag)
+    );
+    if (r.source === 'imported') card.appendChild(h('div', {class: 'imported-from'}, `← ${r.importedFrom}`));
+    return card;
+  }
+  
+  function renderScript(sc){
+    const classes = ['card', 'script'];
+    if (sc.n) classes.push('is-new');
+    if (sc.modified) classes.push('modified');
+    if (sc.cascade) classes.push('cascade-created');
+    const labelRow = h('div', {class: 'card-label'}, h('span', {}, '剧本'));
+    if (sc.source === 'user') labelRow.appendChild(h('span', {class: 'source-pill'}, '上传'));
+    const head = h('div', {class: 'card-head'}, labelRow);
+    if (sc.modified) head.appendChild(h('span', {class: 'mod-chip'}, '已修改'));
+    const lines = sc.lines.map((l, i) =>
+      h('div', {class: `script-line ${(sc.updated||[]).includes(i) ? 'updated' : ''}`}, l)
+    );
+    const el = h('div', {class: classes.join(' ')}, head, ...lines);
+    if (sc.cascade) el.appendChild(h('span', {class: 'cascade-badge'}, '自动补齐'));
+    return el;
+  }
+  
+  function renderStoryboard(sb, color){
+    const classes = ['card', 'storyboard'];
+    if (sb.n) classes.push('is-new');
+    if (sb.cascade) classes.push('cascade-created');
+    const shots = h('div', {class: 'shots'});
+    sb.shots.forEach(sh => shots.appendChild(renderShot(sh, color)));
+    const el = h('div', {class: classes.join(' ')},
+      h('div', {class: 'card-label'}, h('span', {}, `故事版 · ${sb.shots.length} 镜头`)),
+      shots
+    );
+    if (sb.cascade) el.appendChild(h('span', {class: 'cascade-badge'}, '自动补齐'));
+    return el;
+  }
+  
+  function renderShot(sh, color){
+    const classes = ['shot'];
+    if (sh.status === 'video') classes.push('video', color);
+    if (sh.stale) classes.push('stale');
+    if (sh.n) classes.push('is-new');
+    const el = h('div', {class: classes.join(' ')});
+    if (sh.stale) el.appendChild(h('span', {class: 'stale-chip'}, '过期'));
+    el.appendChild(h('div', {class: 'shot-label'}, sh.label));
+    if (sh.status === 'video'){
+      el.appendChild(h('div', {html: `<svg width="14" height="14" viewBox="0 0 14 14"><polygon points="4.5,3 4.5,11 11,7" fill="${COL_HEX[color]}"/></svg>`}));
+    } else {
+      el.appendChild(h('div', {html: `<svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" rx="1" stroke="#6F6A5E" stroke-width="0.8" fill="none" stroke-dasharray="1.5 1.2" opacity="0.6"/></svg>`}));
+    }
+    const st = sh.stale ? '需重生成' : (sh.status === 'video' ? '已生成' : '草图');
+    el.appendChild(h('div', {class: 'shot-status'}, st));
+    return el;
+  }
+  
+  function renderDirectVideo(dv){
+    return h('div', {class: `card direct-video ${dv.n?'is-new':''}`},
+      h('div', {class: 'card-label'}, h('span', {}, '独立成片')),
+      h('div', {class: 'direct-video-thumb'},
+        h('div', {class: 'play', html:'<svg width="11" height="11" viewBox="0 0 12 12"><polygon points="4,2.5 4,9.5 10,6" fill="#1C1A17"/></svg>'})
+      ),
+      h('div', {class: 'card-title'}, dv.label),
+      h('div', {class: 'direct-video-meta'},
+        h('span', {}, dv.dur),
+        h('span', {}, '已生成')
+      )
+    );
+  }
+  
+  // Init
+  initPages();
+  render();
+})();
+</script>
+
+</body>
+</html>
